@@ -6,9 +6,20 @@ import 'react-native-reanimated';
 export default function RootLayout() {
   return (
     <ThemeProvider value={DefaultTheme}>
-      <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="index" />
-        <Stack.Screen name="create-decision" />
+      <Stack>
+        <Stack.Screen
+          name="index"
+          options={{
+            headerShown: false,
+            title: 'Entscheidungsfilter',
+          }}
+        />
+        <Stack.Screen
+          name="create-decision"
+          options={{
+            title: 'Neue Entscheidung',
+          }}
+        />
       </Stack>
       <StatusBar style="dark" />
     </ThemeProvider>
