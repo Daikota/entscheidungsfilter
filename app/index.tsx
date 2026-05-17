@@ -1,3 +1,4 @@
+import { Link } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 export default function HomeScreen() {
@@ -14,12 +15,13 @@ export default function HomeScreen() {
         <Text style={styles.emptyTitle}>Noch keine Entscheidungen</Text>
       </View>
 
-      <Pressable
-        accessibilityRole="button"
-        onPress={() => undefined}
-        style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}>
-        <Text style={styles.buttonText}>Neue Entscheidung</Text>
-      </Pressable>
+      <Link href="/create-decision" asChild>
+        <Pressable
+          accessibilityRole="button"
+          style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}>
+          <Text style={styles.buttonText}>Neue Entscheidung</Text>
+        </Pressable>
+      </Link>
     </View>
   );
 }
