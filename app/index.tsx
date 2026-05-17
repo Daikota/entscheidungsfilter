@@ -4,15 +4,17 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 export default function HomeScreen() {
   return (
     <View style={styles.screen}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Entscheidungsfilter</Text>
-        <Text style={styles.subtitle}>
-          Erstelle deine erste Entscheidung, um Optionen und Kriterien zu bewerten.
-        </Text>
-      </View>
+      <View style={styles.content}>
+        <View style={styles.header}>
+          <Text style={styles.title}>Entscheidungsfilter</Text>
+          <Text style={styles.subtitle}>
+            Erstelle deine erste Entscheidung, um Optionen und Kriterien zu bewerten.
+          </Text>
+        </View>
 
-      <View style={styles.emptyState}>
-        <Text style={styles.emptyTitle}>Noch keine Entscheidungen</Text>
+        <View style={styles.emptyState}>
+          <Text style={styles.emptyTitle}>Noch keine Entscheidungen</Text>
+        </View>
       </View>
 
       <Link href="/create-decision" asChild>
@@ -31,11 +33,15 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F7F8FA',
     paddingHorizontal: 24,
-    paddingVertical: 48,
+    paddingBottom: 32,
+    paddingTop: 56,
+  },
+  content: {
+    flex: 1,
+    gap: 32,
   },
   header: {
     gap: 12,
-    marginBottom: 40,
   },
   title: {
     color: '#172033',
@@ -55,7 +61,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     flex: 1,
     justifyContent: 'center',
-    marginBottom: 24,
     padding: 24,
   },
   emptyTitle: {
@@ -68,9 +73,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#2563EB',
     borderRadius: 8,
-    minHeight: 56,
+    minHeight: 60,
     justifyContent: 'center',
     paddingHorizontal: 24,
+    width: '100%',
   },
   buttonPressed: {
     backgroundColor: '#1D4ED8',
