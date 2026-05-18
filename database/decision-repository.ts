@@ -201,6 +201,16 @@ export async function deleteDecisionFromDatabase(decisionId: string) {
   });
 }
 
+export async function deleteAllAppDataFromDatabase() {
+  const db = await getDatabase();
+  await db.withExclusiveTransactionAsync(async (transaction) => {
+    await transaction.runAsync('DELETE FROM ratings');
+    await transaction.runAsync('DELETE FROM options');
+    await transaction.runAsync('DELETE FROM criteria');
+    await transaction.runAsync('DELETE FROM decisions');
+  });
+}
+
 export async function updateOptionInDatabase(
   decisionId: string,
   optionId: string,

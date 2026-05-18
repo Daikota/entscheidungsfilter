@@ -44,6 +44,15 @@ export default function RootLayout() {
               }}
             />
             <Stack.Screen
+              name="settings"
+              options={{
+                headerShadowVisible: false,
+                headerStyle: { backgroundColor: appTheme.colors.surface },
+                headerTintColor: appTheme.colors.textStrong,
+                title: 'Einstellungen',
+              }}
+            />
+            <Stack.Screen
               name="decision/[id]"
               options={{
                 headerShadowVisible: false,

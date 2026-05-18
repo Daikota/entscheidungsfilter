@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AppThemeValues, useAppTheme } from '@/constants/theme';
 import { useDecisions } from '@/contexts/decision-context';
-import { AppButton, AppCard, EmptyState, StatPill } from '@/components/ui/app-ui';
+import { AppButton, AppCard, EmptyState, IconButton, StatPill } from '@/components/ui/app-ui';
 
 const formatDateTime = (value: string) => {
   const date = new Date(value);
@@ -33,8 +33,15 @@ export default function HomeScreen() {
         contentContainerStyle={styles.content}
         style={styles.contentArea}>
         <View style={styles.hero}>
-          <View style={styles.heroIcon}>
-            <Ionicons color={theme.colors.onPrimary} name="sparkles" size={24} />
+          <View style={styles.heroTopRow}>
+            <View style={styles.heroIcon}>
+              <Ionicons color={theme.colors.onPrimary} name="sparkles" size={24} />
+            </View>
+            <IconButton
+              icon="settings-outline"
+              label="Einstellungen öffnen"
+              onPress={() => router.push('/settings')}
+            />
           </View>
           <View style={styles.heroText}>
             <Text style={styles.kicker}>Decision Studio</Text>
@@ -135,6 +142,11 @@ const createStyles = (theme: AppThemeValues) => StyleSheet.create({
     gap: 18,
     padding: 20,
     ...theme.shadow.elevated,
+  },
+  heroTopRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
   },
   heroIcon: {
     alignItems: 'center',

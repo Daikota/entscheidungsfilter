@@ -1,6 +1,7 @@
 import { createContext, PropsWithChildren, useCallback, useContext, useEffect, useState } from 'react';
 
 import {
+  deleteAllAppDataFromDatabase,
   deleteCriterionFromDatabase,
   deleteDecisionFromDatabase,
   deleteOptionFromDatabase,
@@ -42,6 +43,7 @@ type DecisionContextValue = {
   addDecisionWithDetails: (input: CreateDecisionWithDetailsInput) => Promise<Decision>;
   updateDecision: (input: UpdateDecisionInput) => Promise<void>;
   deleteDecision: (decisionId: string) => Promise<void>;
+  deleteAllData: () => Promise<void>;
   addOption: (input: CreateDecisionOptionInput) => Promise<DecisionOption>;
   updateOption: (input: UpdateDecisionOptionInput) => Promise<void>;
   deleteOption: (decisionId: string, optionId: string) => Promise<void>;
@@ -233,6 +235,11 @@ export function DecisionProvider({ children }: PropsWithChildren) {
     setDecisions((currentDecisions) =>
       currentDecisions.filter((decision) => decision.id !== decisionId)
     );
+  }, []);
+
+  const deleteAllData = useCallback(async () => {
+    await deleteAllAppDataFromDatabase();
+    setDecisions([]);
   }, []);
 
   const updateOption = useCallback(async (input: UpdateDecisionOptionInput) => {
@@ -474,6 +481,7 @@ export function DecisionProvider({ children }: PropsWithChildren) {
         addDecisionWithDetails,
         updateDecision,
         deleteDecision,
+        deleteAllData,
         addOption,
         updateOption,
         deleteOption,
