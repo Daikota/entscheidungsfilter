@@ -1,5 +1,5 @@
 import { Link } from 'expo-router';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { useDecisions } from '@/contexts/decision-context';
 
@@ -18,8 +18,8 @@ export default function HomeScreen() {
   const { decisions } = useDecisions();
 
   return (
-    <View style={styles.screen}>
-      <View style={styles.content}>
+    <SafeAreaView style={styles.screen}>
+      <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.header}>
           <Text style={styles.title}>Entscheidungsfilter</Text>
           <Text style={styles.subtitle}>
@@ -32,7 +32,7 @@ export default function HomeScreen() {
             <Text style={styles.emptyTitle}>Noch keine Entscheidungen</Text>
           </View>
         ) : (
-          <ScrollView contentContainerStyle={styles.decisionList}>
+          <View style={styles.decisionList}>
             {decisions.map((decision) => (
               <View key={decision.id} style={styles.decisionCard}>
                 <Text style={styles.decisionTitle}>{decision.title}</Text>
@@ -45,18 +45,20 @@ export default function HomeScreen() {
                 </View>
               </View>
             ))}
-          </ScrollView>
+          </View>
         )}
-      </View>
+      </ScrollView>
 
-      <Link href="/create-decision" asChild>
-        <Pressable
-          accessibilityRole="button"
-          style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}>
-          <Text style={styles.buttonText}>Neue Entscheidung</Text>
-        </Pressable>
-      </Link>
-    </View>
+      <View style={styles.actionBar}>
+        <Link href="/create-decision" asChild>
+          <Pressable
+            accessibilityRole="button"
+            style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}>
+            <Text style={styles.buttonText}>Neue Entscheidung</Text>
+          </Pressable>
+        </Link>
+      </View>
+    </SafeAreaView>
   );
 }
 
@@ -64,13 +66,12 @@ const styles = StyleSheet.create({
   screen: {
     flex: 1,
     backgroundColor: '#F7F8FA',
-    paddingHorizontal: 24,
-    paddingBottom: 32,
-    paddingTop: 56,
   },
   content: {
-    flex: 1,
     gap: 32,
+    paddingBottom: 24,
+    paddingHorizontal: 24,
+    paddingTop: 56,
   },
   header: {
     gap: 12,
@@ -91,8 +92,8 @@ const styles = StyleSheet.create({
     borderColor: '#DDE3EA',
     borderRadius: 8,
     borderWidth: 1,
-    flex: 1,
     justifyContent: 'center',
+    minHeight: 260,
     padding: 24,
   },
   emptyTitle: {
@@ -125,6 +126,14 @@ const styles = StyleSheet.create({
     color: '#4D5A6D',
     fontSize: 14,
     lineHeight: 20,
+  },
+  actionBar: {
+    backgroundColor: '#F7F8FA',
+    borderTopColor: '#E6EBF1',
+    borderTopWidth: 1,
+    paddingBottom: 20,
+    paddingHorizontal: 24,
+    paddingTop: 16,
   },
   button: {
     alignItems: 'center',
