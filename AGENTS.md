@@ -90,3 +90,56 @@ These rules are mandatory for all future UI and UX decisions in this project.
 - Keep UI components reusable where practical.
 - Prefer small, clearly separated components.
 - Do not build huge screen files when a screen can be reasonably split into focused components.
+
+## Dark Mode Architecture Rules
+
+These rules are mandatory for future UI work so the app can support a professional Light and Dark Mode without large later refactors.
+
+### 1. Theme Architecture
+
+- Do not spread hardcoded colors directly across screen files.
+- Manage colors centrally whenever practical, for example in `constants/theme.ts` or `constants/colors.ts`.
+- New components must be structured so they can become theme-aware later.
+- Prefer named semantic color tokens over raw color values in UI code.
+
+### 2. Dark Mode Strategy
+
+- Do not fully activate Dark Mode unless explicitly requested.
+- New UI components should still be structured to be Dark-Mode-compatible.
+- `useColorScheme` may be prepared or used when it is helpful and does not overcomplicate the task.
+- Do not add a manual theme toggle unless explicitly requested.
+
+### 3. Color Rules
+
+- Avoid using pure black or pure white surfaces everywhere.
+- Prefer comfortable contrast rather than harsh contrast.
+- Avoid pure `#000000` where a slightly lifted dark surface works better.
+- Keep dark surfaces slightly elevated and readable.
+- Prioritize text readability in every color decision.
+
+### 4. Accessibility
+
+- Text must remain readable in both Light and Dark Mode.
+- Keep contrast accessibility-friendly.
+- Do not communicate meaning through color alone.
+- Status, emphasis, and validation states must also have text, icons, structure, or labels when needed.
+
+### 5. Component Rules
+
+- Reusable components should consume theme values instead of local raw colors.
+- Avoid scattered inline color values across many files.
+- Import colors from a central theme source whenever the task scope allows it.
+- Keep component APIs compatible with future theme changes.
+
+### 6. UI Behavior
+
+- Status colors for success, warning, error, and info must work in both Light and Dark Mode.
+- Buttons, inputs, cards, and lists must stay clearly distinguishable in both modes.
+- Disabled, pressed, focused, and error states must remain visible in both modes.
+
+### 7. Development Rule
+
+- For larger UI changes, check whether hardcoded colors can be avoided.
+- For larger UI changes, check whether the structure remains Dark-Mode-ready.
+- Do not perform large theme refactors unless explicitly requested.
+- Keep theme improvements scoped to the current task unless the user asks for a broader redesign.
