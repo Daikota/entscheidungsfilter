@@ -1,8 +1,10 @@
+import { Ionicons } from '@expo/vector-icons';
 import { Link, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { AppButton, AppCard, EmptyState, SectionHeader, StatPill } from '@/components/ui/app-ui';
 import { AppThemeValues, useAppTheme } from '@/constants/theme';
 import { useDecisions } from '@/contexts/decision-context';
 import { RatingScore } from '@/types/decision';
@@ -23,7 +25,7 @@ export default function DecisionRatingsScreen() {
     return (
       <View style={styles.screen}>
         <View style={styles.messageContent}>
-          <Text style={styles.messageTitle}>Bewertung wird geladen</Text>
+          <EmptyState icon="sync-outline" title="Bewertung wird geladen" />
         </View>
       </View>
     );
@@ -33,7 +35,7 @@ export default function DecisionRatingsScreen() {
     return (
       <View style={styles.screen}>
         <View style={styles.messageContent}>
-          <Text style={styles.messageTitle}>{databaseError}</Text>
+          <EmptyState icon="alert-circle-outline" title={databaseError} />
         </View>
       </View>
     );
@@ -43,17 +45,13 @@ export default function DecisionRatingsScreen() {
     return (
       <View style={styles.screen}>
         <View style={styles.messageContent}>
-          <Text style={styles.messageTitle}>Entscheidung nicht gefunden</Text>
-          <Text style={styles.messageText}>
-            Diese Entscheidung ist nur im lokalen App-Zustand vorhanden und kann nach einem Neustart
-            verschwinden.
-          </Text>
+          <EmptyState
+            icon="help-circle-outline"
+            title="Entscheidung nicht gefunden"
+            message="Die lokale Datenbank konnte diesen Eintrag nicht laden."
+          />
           <Link href="/" asChild>
-            <Pressable
-              accessibilityRole="button"
-              style={({ pressed }) => [styles.primaryButton, pressed && styles.primaryButtonPressed]}>
-              <Text style={styles.primaryButtonText}>Zur Startseite</Text>
-            </Pressable>
+            <AppButton icon="home-outline" title="Zur Startseite" />
           </Link>
         </View>
       </View>
@@ -62,37 +60,52 @@ export default function DecisionRatingsScreen() {
 
   const hasMissingSetup = decision.options.length === 0 || decision.criteria.length === 0;
   const results = hasMissingSetup ? [] : calculateDecisionResults(decision);
+  const maxScore = results.length > 0 ? results[0].totalScore : 0;
 
   return (
     <ScrollView
-      contentContainerStyle={[styles.content, { paddingBottom: Math.max(insets.bottom + 32, 48) }]}
+      contentContainerStyle={[styles.content, { paddingBottom: Math.max(insets.bottom + 34, 52) }]}
       style={styles.screen}>
-      <View style={styles.header}>
+      <AppCard elevated style={styles.heroCard}>
+        <Text style={styles.kicker}>Analyse</Text>
         <Text style={styles.title}>Bewertung</Text>
-        <Text style={styles.subtitle}>{decision.title}</Text>
-      </View>
+        <Text numberOfLines={2} style={styles.subtitle}>
+          {decision.title}
+        </Text>
+        <View style={styles.statsRow}>
+          <StatPill icon="list-outline" label="Optionen" value={`${decision.options.length}`} emphasis />
+          <StatPill icon="options-outline" label="Kriterien" value={`${decision.criteria.length}`} />
+          <StatPill icon="star-outline" label="Skala" value="1-5" />
+        </View>
+      </AppCard>
+
       {screenError.length > 0 ? (
-        <View style={styles.errorBox}>
+        <AppCard style={styles.errorBox}>
           <Text accessibilityRole="alert" style={styles.errorText}>
             {screenError}
           </Text>
-        </View>
+        </AppCard>
       ) : null}
 
       {hasMissingSetup ? (
-        <View style={styles.emptyState}>
-          <Text style={styles.emptyTitle}>Bewertung noch nicht möglich</Text>
-          <Text style={styles.emptyText}>
-            Füge mindestens eine Option und ein Kriterium hinzu, bevor du bewertest.
-          </Text>
-        </View>
+        <EmptyState
+          icon="construct-outline"
+          title="Noch nicht bereit"
+          message="Du brauchst mindestens eine Option und ein Kriterium, bevor die Analyse Sinn ergibt."
+        />
       ) : (
         <>
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Punkte vergeben</Text>
+            <SectionHeader eyebrow="Score" title="Punkte vergeben" />
             {decision.options.map((option) => (
-              <View key={option.id} style={styles.optionCard}>
-                <Text style={styles.optionTitle}>{option.name}</Text>
+              <AppCard key={option.id} style={styles.optionCard}>
+                <View style={styles.optionHeader}>
+                  <View style={styles.optionIcon}>
+                    <Ionicons color={theme.colors.primary} name="cube-outline" size={19} />
+                  </View>
+                  <Text style={styles.optionTitle}>{option.name}</Text>
+                </View>
+
                 <View style={styles.criteriaList}>
                   {decision.criteria.map((criterion) => {
                     const selectedRating = decision.ratings.find(
@@ -101,10 +114,17 @@ export default function DecisionRatingsScreen() {
                     );
 
                     return (
-                      <View key={criterion.id} style={styles.ratingRow}>
+                      <View key={criterion.id} style={styles.ratingBlock}>
                         <View style={styles.ratingHeader}>
-                          <Text style={styles.criterionName}>{criterion.name}</Text>
-                          <Text style={styles.weightText}>Gewichtung {criterion.weight}</Text>
+                          <View style={styles.criterionTextGroup}>
+                            <Text style={styles.criterionName}>{criterion.name}</Text>
+                            <Text style={styles.weightText}>Gewichtung {criterion.weight}</Text>
+                          </View>
+                          {selectedRating ? (
+                            <View style={styles.selectedBadge}>
+                              <Text style={styles.selectedBadgeText}>{selectedRating.score}</Text>
+                            </View>
+                          ) : null}
                         </View>
                         <View style={styles.scoreButtons}>
                           {ratingScores.map((score) => {
@@ -112,10 +132,10 @@ export default function DecisionRatingsScreen() {
 
                             return (
                               <Pressable
-                                key={score}
+                                accessibilityLabel={`${score} Punkte für ${option.name} bei ${criterion.name}`}
                                 accessibilityRole="button"
                                 accessibilityState={{ selected: isSelected }}
-                                accessibilityLabel={`${score} Punkte für ${option.name} bei ${criterion.name}`}
+                                key={score}
                                 onPress={() => {
                                   setRating({
                                     decisionId: decision.id,
@@ -129,9 +149,10 @@ export default function DecisionRatingsScreen() {
                                       setScreenError('Die Bewertung konnte nicht gespeichert werden.');
                                     });
                                 }}
-                                style={[
+                                style={({ pressed }) => [
                                   styles.scoreButton,
                                   isSelected && styles.scoreButtonSelected,
+                                  pressed && styles.scoreButtonPressed,
                                 ]}>
                                 <Text
                                   style={[
@@ -148,27 +169,42 @@ export default function DecisionRatingsScreen() {
                     );
                   })}
                 </View>
-              </View>
+              </AppCard>
             ))}
           </View>
 
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Ergebnis</Text>
+            <SectionHeader eyebrow="Ranking" title="Ergebnis" />
             <View style={styles.resultList}>
-              {results.map((result) => (
-                <View
-                  key={result.optionId}
-                  style={[styles.resultCard, result.rank === 1 && styles.bestResultCard]}>
-                  <View style={styles.resultRank}>
-                    <Text style={styles.resultRankText}>{result.rank}</Text>
-                  </View>
-                  <View style={styles.resultContent}>
-                    <Text style={styles.resultTitle}>{result.optionName}</Text>
-                    <Text style={styles.resultLabel}>{result.label}</Text>
-                  </View>
-                  <Text style={styles.resultScore}>{result.totalScore}</Text>
-                </View>
-              ))}
+              {results.map((result) => {
+                const widthPercent = maxScore > 0 ? Math.max((result.totalScore / maxScore) * 100, 8) : 8;
+
+                return (
+                  <AppCard
+                    elevated={result.rank === 1}
+                    key={result.optionId}
+                    style={[styles.resultCard, result.rank === 1 && styles.bestResultCard]}>
+                    <View style={styles.resultTopRow}>
+                      <View style={[styles.resultRank, result.rank === 1 && styles.bestResultRank]}>
+                        <Text style={[styles.resultRankText, result.rank === 1 && styles.bestResultRankText]}>
+                          {result.rank}
+                        </Text>
+                      </View>
+                      <View style={styles.resultContent}>
+                        <Text style={styles.resultTitle}>{result.optionName}</Text>
+                        <Text style={styles.resultLabel}>{result.label}</Text>
+                      </View>
+                      <View style={styles.scoreBadge}>
+                        <Text style={styles.resultScore}>{result.totalScore}</Text>
+                        <Text style={styles.scoreCaption}>Pkt.</Text>
+                      </View>
+                    </View>
+                    <View style={styles.scoreTrack}>
+                      <View style={[styles.scoreFill, { width: `${widthPercent}%` }]} />
+                    </View>
+                  </AppCard>
+                );
+              })}
             </View>
           </View>
         </>
@@ -187,84 +223,128 @@ const createStyles = (theme: AppThemeValues) => StyleSheet.create({
     paddingHorizontal: theme.spacing.screenX,
     paddingTop: 32,
   },
-  header: {
-    gap: 8,
+  heroCard: {
+    gap: 10,
+  },
+  kicker: {
+    color: theme.colors.primary,
+    fontSize: 12,
+    fontWeight: '900',
+    letterSpacing: 0,
+    textTransform: 'uppercase',
   },
   title: {
-    color: theme.colors.text,
-    fontSize: 30,
-    fontWeight: '700',
+    color: theme.colors.textStrong,
+    fontSize: 31,
+    fontWeight: '900',
+    lineHeight: 36,
   },
   subtitle: {
     color: theme.colors.textSecondary,
-    fontSize: 17,
-    lineHeight: 24,
+    fontSize: 16,
+    lineHeight: 22,
+  },
+  statsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    paddingTop: 2,
   },
   section: {
     gap: 12,
   },
-  sectionTitle: {
-    color: theme.colors.text,
-    fontSize: 22,
-    fontWeight: '700',
-  },
   optionCard: {
-    backgroundColor: theme.colors.surfaceRaised,
-    borderColor: theme.colors.border,
-    borderRadius: theme.radius.md,
-    borderWidth: 1,
     gap: 16,
-    padding: 16,
-    ...theme.shadow.card,
   },
-  optionTitle: {
-    color: theme.colors.text,
-    fontSize: 19,
-    fontWeight: '700',
-  },
-  criteriaList: {
-    gap: 14,
-  },
-  ratingRow: {
+  optionHeader: {
+    alignItems: 'center',
+    flexDirection: 'row',
     gap: 10,
   },
+  optionIcon: {
+    alignItems: 'center',
+    backgroundColor: theme.colors.primarySoft,
+    borderRadius: theme.radius.pill,
+    height: 38,
+    justifyContent: 'center',
+    width: 38,
+  },
+  optionTitle: {
+    color: theme.colors.textStrong,
+    flex: 1,
+    fontSize: 19,
+    fontWeight: '900',
+  },
+  criteriaList: {
+    gap: 13,
+  },
+  ratingBlock: {
+    backgroundColor: theme.colors.surfaceTint,
+    borderColor: theme.colors.borderSoft,
+    borderRadius: theme.radius.lg,
+    borderWidth: 1,
+    gap: 11,
+    padding: 12,
+  },
   ratingHeader: {
+    alignItems: 'center',
     flexDirection: 'row',
-    gap: 8,
+    gap: 10,
     justifyContent: 'space-between',
+  },
+  criterionTextGroup: {
+    flex: 1,
+    gap: 3,
   },
   criterionName: {
     color: theme.colors.textStrong,
-    flex: 1,
-    fontSize: 16,
-    fontWeight: '700',
+    fontSize: 15,
+    fontWeight: '900',
   },
   weightText: {
     color: theme.colors.textSecondary,
-    fontSize: 14,
+    fontSize: 13,
+  },
+  selectedBadge: {
+    alignItems: 'center',
+    backgroundColor: theme.colors.primary,
+    borderRadius: theme.radius.pill,
+    height: 30,
+    justifyContent: 'center',
+    width: 30,
+  },
+  selectedBadgeText: {
+    color: theme.colors.onPrimary,
+    fontSize: 13,
+    fontWeight: '900',
   },
   scoreButtons: {
     flexDirection: 'row',
-    gap: 8,
+    gap: 7,
   },
   scoreButton: {
     alignItems: 'center',
-    backgroundColor: theme.colors.surfaceRaised,
-    borderColor: theme.colors.border,
-    borderRadius: theme.radius.md,
+    backgroundColor: theme.colors.surfaceElevated,
+    borderColor: theme.colors.borderSoft,
+    borderRadius: theme.radius.pill,
     borderWidth: 1,
     flex: 1,
     justifyContent: 'center',
     minHeight: theme.touch.min,
   },
+  scoreButtonPressed: {
+    backgroundColor: theme.colors.surfacePressed,
+    transform: [{ scale: 0.97 }],
+  },
   scoreButtonSelected: {
     backgroundColor: theme.colors.primary,
     borderColor: theme.colors.primary,
+    ...theme.shadow.card,
   },
   scoreButtonText: {
     color: theme.colors.textStrong,
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: '900',
   },
   scoreButtonTextSelected: {
     color: theme.colors.onPrimary,
@@ -273,119 +353,88 @@ const createStyles = (theme: AppThemeValues) => StyleSheet.create({
     gap: 10,
   },
   resultCard: {
-    alignItems: 'center',
-    backgroundColor: theme.colors.surfaceRaised,
-    borderColor: theme.colors.border,
-    borderRadius: theme.radius.sm,
-    borderWidth: 1,
-    flexDirection: 'row',
     gap: 12,
-    padding: 14,
-    ...theme.shadow.card,
   },
   bestResultCard: {
     borderColor: theme.colors.primary,
+    borderWidth: 2,
+  },
+  resultTopRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 12,
   },
   resultRank: {
     alignItems: 'center',
-    backgroundColor: theme.colors.primarySoft,
-    borderRadius: theme.radius.md,
-    height: 40,
+    backgroundColor: theme.colors.surfaceTint,
+    borderRadius: theme.radius.pill,
+    height: 42,
     justifyContent: 'center',
-    width: 40,
+    width: 42,
+  },
+  bestResultRank: {
+    backgroundColor: theme.colors.primary,
   },
   resultRankText: {
-    color: theme.colors.info,
+    color: theme.colors.textStrong,
     fontSize: 18,
-    fontWeight: '700',
+    fontWeight: '900',
+  },
+  bestResultRankText: {
+    color: theme.colors.onPrimary,
   },
   resultContent: {
     flex: 1,
-    gap: 4,
+    gap: 3,
   },
   resultTitle: {
-    color: theme.colors.text,
+    color: theme.colors.textStrong,
     fontSize: 17,
-    fontWeight: '700',
+    fontWeight: '900',
   },
   resultLabel: {
     color: theme.colors.textSecondary,
-    fontSize: 14,
-  },
-  resultScore: {
-    color: theme.colors.text,
-    fontSize: 20,
+    fontSize: 13,
     fontWeight: '700',
   },
-  emptyState: {
-    alignItems: 'center',
-    backgroundColor: theme.colors.surfaceRaised,
-    borderColor: theme.colors.border,
-    borderRadius: theme.radius.md,
-    borderWidth: 1,
-    gap: 8,
-    justifyContent: 'center',
-    minHeight: 180,
-    padding: 20,
+  scoreBadge: {
+    alignItems: 'flex-end',
+  },
+  resultScore: {
+    color: theme.colors.textStrong,
+    fontSize: 23,
+    fontWeight: '900',
+  },
+  scoreCaption: {
+    color: theme.colors.textSecondary,
+    fontSize: 11,
+    fontWeight: '800',
+  },
+  scoreTrack: {
+    backgroundColor: theme.colors.surfaceTint,
+    borderRadius: theme.radius.pill,
+    height: 8,
+    overflow: 'hidden',
+  },
+  scoreFill: {
+    backgroundColor: theme.colors.primary,
+    borderRadius: theme.radius.pill,
+    height: '100%',
   },
   errorBox: {
     backgroundColor: theme.colors.dangerSoft,
     borderColor: theme.colors.dangerBorder,
-    borderRadius: theme.radius.sm,
-    borderWidth: 1,
-    padding: 14,
   },
   errorText: {
-    color: theme.colors.danger,
+    color: theme.colors.dangerStrong,
     fontSize: 14,
-    lineHeight: 20,
-  },
-  emptyTitle: {
-    color: theme.colors.textStrong,
-    fontSize: 18,
     fontWeight: '700',
-    textAlign: 'center',
-  },
-  emptyText: {
-    color: theme.colors.textSecondary,
-    fontSize: 15,
-    lineHeight: 21,
-    textAlign: 'center',
+    lineHeight: 20,
   },
   messageContent: {
     flex: 1,
     gap: 16,
     justifyContent: 'center',
     paddingHorizontal: theme.spacing.screenX,
-  },
-  messageTitle: {
-    color: theme.colors.text,
-    fontSize: 24,
-    fontWeight: '700',
-    textAlign: 'center',
-  },
-  messageText: {
-    color: theme.colors.textSecondary,
-    fontSize: 16,
-    lineHeight: 23,
-    textAlign: 'center',
-  },
-  primaryButton: {
-    alignItems: 'center',
-    backgroundColor: theme.colors.primary,
-    borderRadius: theme.radius.sm,
-    justifyContent: 'center',
-    minHeight: theme.touch.primary,
-    paddingHorizontal: 20,
-    paddingVertical: 14,
-  },
-  primaryButtonPressed: {
-    backgroundColor: theme.colors.primaryPressed,
-  },
-  primaryButtonText: {
-    color: theme.colors.onPrimary,
-    fontSize: 17,
-    fontWeight: '700',
-    textAlign: 'center',
   },
 });

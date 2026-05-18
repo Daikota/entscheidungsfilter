@@ -37,18 +37,27 @@ export default function RootLayout() {
             <Stack.Screen
               name="create-decision"
               options={{
+                headerShadowVisible: false,
+                headerStyle: { backgroundColor: appTheme.colors.surface },
+                headerTintColor: appTheme.colors.textStrong,
                 title: 'Neue Entscheidung',
               }}
             />
             <Stack.Screen
               name="decision/[id]"
               options={{
+                headerShadowVisible: false,
+                headerStyle: { backgroundColor: appTheme.colors.surface },
+                headerTintColor: appTheme.colors.textStrong,
                 title: 'Entscheidung',
               }}
             />
             <Stack.Screen
               name="decision/[id]/ratings"
               options={{
+                headerShadowVisible: false,
+                headerStyle: { backgroundColor: appTheme.colors.surface },
+                headerTintColor: appTheme.colors.textStrong,
                 title: 'Bewertung',
               }}
             />

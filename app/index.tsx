@@ -1,9 +1,11 @@
-import { Link } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AppThemeValues, useAppTheme } from '@/constants/theme';
 import { useDecisions } from '@/contexts/decision-context';
+import { AppButton, AppCard, EmptyState, StatPill } from '@/components/ui/app-ui';
 
 const formatDateTime = (value: string) => {
   const date = new Date(value);
@@ -19,9 +21,10 @@ const formatDateTime = (value: string) => {
 export default function HomeScreen() {
   const theme = useAppTheme();
   const styles = createStyles(theme);
+  const router = useRouter();
   const { decisions, databaseError, isDatabaseReady } = useDecisions();
   const insets = useSafeAreaInsets();
-  const footerBottomPadding = Math.max(insets.bottom + 12, 28);
+  const footerBottomPadding = Math.max(insets.bottom + 14, 30);
 
   return (
     <View style={styles.screen}>
@@ -29,64 +32,82 @@ export default function HomeScreen() {
         alwaysBounceVertical={false}
         contentContainerStyle={styles.content}
         style={styles.contentArea}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Entscheidungsfilter</Text>
-          <Text style={styles.subtitle}>
-            Erstelle deine erste Entscheidung, um Optionen und Kriterien zu bewerten.
-          </Text>
+        <View style={styles.hero}>
+          <View style={styles.heroIcon}>
+            <Ionicons color={theme.colors.onPrimary} name="sparkles" size={24} />
+          </View>
+          <View style={styles.heroText}>
+            <Text style={styles.kicker}>Decision Studio</Text>
+            <Text style={styles.title}>Entscheidungen klarer machen.</Text>
+            <Text style={styles.subtitle}>
+              Vergleiche Optionen mit Kriterien und sieh sofort, was vorne liegt.
+            </Text>
+          </View>
+        </View>
+
+        <View style={styles.summaryRow}>
+          <StatPill icon="layers-outline" label="Aktiv" value={`${decisions.length}`} emphasis />
+          <StatPill
+            icon="git-compare-outline"
+            label="Optionen"
+            value={`${decisions.reduce((sum, decision) => sum + decision.options.length, 0)}`}
+          />
         </View>
 
         {!isDatabaseReady ? (
-          <View style={styles.emptyState}>
-            <Text style={styles.emptyTitle}>Entscheidungen werden geladen</Text>
-          </View>
+          <EmptyState icon="sync-outline" title="Lade Entscheidungen" />
         ) : databaseError.length > 0 ? (
-          <View style={styles.emptyState}>
-            <Text style={styles.emptyTitle}>{databaseError}</Text>
-          </View>
+          <EmptyState icon="alert-circle-outline" title={databaseError} />
         ) : decisions.length === 0 ? (
-          <View style={styles.emptyState}>
-            <Text style={styles.emptyTitle}>Noch keine Entscheidungen</Text>
-          </View>
+          <EmptyState
+            icon="compass-outline"
+            title="Noch nichts zu vergleichen"
+            message="Starte mit einer Entscheidung und sammle direkt erste Optionen."
+          />
         ) : (
           <View style={styles.decisionList}>
-            {decisions.map((decision) => (
-              <Link
+            {decisions.map((decision, index) => (
+              <Pressable
+                accessibilityLabel={`Entscheidung ${decision.title} öffnen`}
+                accessibilityRole="button"
                 key={decision.id}
-                href={{ pathname: '/decision/[id]', params: { id: decision.id } }}
-                asChild>
-                <Pressable
-                  accessibilityRole="button"
-                  accessibilityLabel={`Entscheidung ${decision.title} öffnen`}
-                  style={({ pressed }) => [
-                    styles.decisionCard,
-                    pressed && styles.decisionCardPressed,
-                  ]}>
-                  <Text style={styles.decisionTitle}>{decision.title}</Text>
-                  <View style={styles.decisionMeta}>
-                    <Text style={styles.metaText}>Optionen: {decision.options.length}</Text>
-                    <Text style={styles.metaText}>
-                      Erstellt: {formatDateTime(decision.createdAt)}
-                    </Text>
-                    <Text style={styles.metaText}>
-                      Zuletzt bearbeitet: {formatDateTime(decision.updatedAt)}
-                    </Text>
+                onPress={() => router.push({ pathname: '/decision/[id]', params: { id: decision.id } })}
+                style={({ pressed }) => [
+                  styles.decisionPressable,
+                  pressed && styles.decisionPressablePressed,
+                ]}>
+                <AppCard elevated={index === 0} style={styles.decisionCard}>
+                  <View style={styles.cardTopRow}>
+                    <View style={styles.cardTitleGroup}>
+                      <Text numberOfLines={2} style={styles.decisionTitle}>
+                        {decision.title}
+                      </Text>
+                      <Text numberOfLines={1} style={styles.metaText}>
+                        Aktualisiert {formatDateTime(decision.updatedAt)}
+                      </Text>
+                    </View>
+                    <View style={styles.cardArrow}>
+                      <Ionicons color={theme.colors.textSecondary} name="chevron-forward" size={20} />
+                    </View>
                   </View>
-                </Pressable>
-              </Link>
+                  <View style={styles.cardMetaRow}>
+                    <StatPill icon="list-outline" label="Optionen" value={`${decision.options.length}`} />
+                    <StatPill icon="calendar-clear-outline" label="Erstellt" value={formatDateTime(decision.createdAt).split(',')[0]} />
+                  </View>
+                </AppCard>
+              </Pressable>
             ))}
           </View>
         )}
       </ScrollView>
 
       <View style={[styles.actionBar, { paddingBottom: footerBottomPadding }]}>
-        <Link href="/create-decision" asChild>
-          <Pressable
-            accessibilityRole="button"
-            style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}>
-            <Text style={styles.buttonText}>Neue Entscheidung</Text>
-          </Pressable>
-        </Link>
+        <AppButton
+          icon="add"
+          onPress={() => router.push('/create-decision')}
+          style={styles.actionButton}
+          title="Neue Entscheidung"
+        />
       </View>
     </View>
   );
@@ -101,93 +122,109 @@ const createStyles = (theme: AppThemeValues) => StyleSheet.create({
     flex: 1,
   },
   content: {
-    gap: 28,
+    gap: 18,
     paddingBottom: 24,
     paddingHorizontal: theme.spacing.screenX,
-    paddingTop: 56,
+    paddingTop: 42,
   },
-  header: {
-    gap: 12,
+  hero: {
+    backgroundColor: theme.colors.surfaceTint,
+    borderColor: theme.colors.borderSoft,
+    borderRadius: theme.radius.xl,
+    borderWidth: 1,
+    gap: 18,
+    padding: 20,
+    ...theme.shadow.elevated,
+  },
+  heroIcon: {
+    alignItems: 'center',
+    backgroundColor: theme.colors.primary,
+    borderRadius: theme.radius.pill,
+    height: 52,
+    justifyContent: 'center',
+    width: 52,
+  },
+  heroText: {
+    gap: 7,
+  },
+  kicker: {
+    color: theme.colors.primary,
+    fontSize: 12,
+    fontWeight: '900',
+    letterSpacing: 0,
+    textTransform: 'uppercase',
   },
   title: {
-    color: theme.colors.text,
+    color: theme.colors.textStrong,
     fontSize: 32,
-    fontWeight: '700',
+    fontWeight: '900',
+    lineHeight: 37,
   },
   subtitle: {
     color: theme.colors.textSecondary,
-    fontSize: 17,
-    lineHeight: 24,
+    fontSize: 16,
+    lineHeight: 23,
   },
-  emptyState: {
-    alignItems: 'center',
-    backgroundColor: theme.colors.surfaceRaised,
-    borderColor: theme.colors.border,
-    borderRadius: theme.radius.md,
-    borderWidth: 1,
-    justifyContent: 'center',
-    minHeight: 260,
-    padding: 24,
-  },
-  emptyTitle: {
-    color: theme.colors.textStrong,
-    fontSize: 20,
-    fontWeight: '600',
-    textAlign: 'center',
+  summaryRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
   },
   decisionList: {
     gap: 12,
     paddingBottom: 8,
   },
-  decisionCard: {
-    backgroundColor: theme.colors.surfaceRaised,
-    borderColor: theme.colors.border,
-    borderRadius: theme.radius.md,
-    borderWidth: 1,
-    gap: 12,
-    minHeight: 96,
-    padding: 16,
-    ...theme.shadow.card,
+  decisionPressable: {
+    borderRadius: theme.radius.lg,
   },
-  decisionCardPressed: {
-    backgroundColor: theme.colors.surfacePressed,
+  decisionPressablePressed: {
+    transform: [{ scale: 0.985 }],
+  },
+  decisionCard: {
+    gap: 14,
+  },
+  cardTopRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 12,
+  },
+  cardTitleGroup: {
+    flex: 1,
+    gap: 5,
   },
   decisionTitle: {
-    color: theme.colors.text,
+    color: theme.colors.textStrong,
     fontSize: 19,
-    fontWeight: '700',
-  },
-  decisionMeta: {
-    gap: 6,
+    fontWeight: '900',
+    lineHeight: 24,
   },
   metaText: {
     color: theme.colors.textSecondary,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: 13,
+    lineHeight: 18,
+  },
+  cardArrow: {
+    alignItems: 'center',
+    backgroundColor: theme.colors.surfaceTint,
+    borderRadius: theme.radius.pill,
+    height: 38,
+    justifyContent: 'center',
+    width: 38,
+  },
+  cardMetaRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
   },
   actionBar: {
     backgroundColor: theme.colors.surface,
     borderTopColor: theme.colors.borderSoft,
     borderTopWidth: 1,
     paddingHorizontal: theme.spacing.screenX,
-    paddingTop: 16,
+    paddingTop: 14,
     ...theme.shadow.footer,
   },
-  button: {
-    alignItems: 'center',
-    backgroundColor: theme.colors.primary,
-    borderRadius: theme.radius.sm,
-    minHeight: 60,
-    justifyContent: 'center',
-    paddingHorizontal: 24,
+  actionButton: {
     width: '100%',
-  },
-  buttonPressed: {
-    backgroundColor: theme.colors.primaryPressed,
-  },
-  buttonText: {
-    color: theme.colors.onPrimary,
-    fontSize: 18,
-    fontWeight: '700',
   },
 });

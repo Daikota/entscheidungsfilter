@@ -1,8 +1,10 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { AppButton, AppCard, AppInput, IconButton, SectionHeader, StatPill } from '@/components/ui/app-ui';
 import { AppThemeValues, useAppTheme } from '@/constants/theme';
 import { useDecisions } from '@/contexts/decision-context';
 import { CriterionWeight } from '@/types/decision';
@@ -163,124 +165,117 @@ export default function CreateDecisionScreen() {
   return (
     <View style={styles.screen}>
       <ScrollView
-        contentContainerStyle={[styles.content, { paddingBottom: Math.max(insets.bottom + 120, 136) }]}>
+        contentContainerStyle={[styles.content, { paddingBottom: Math.max(insets.bottom + 118, 138) }]}
+        keyboardShouldPersistTaps="handled">
         <View style={styles.header}>
-          <Text style={styles.title}>Neue Entscheidung</Text>
-          <Text style={styles.subtitle}>Lege die Entscheidung samt ersten Optionen und Kriterien an.</Text>
+          <Text style={styles.kicker}>Neuer Vergleich</Text>
+          <Text style={styles.title}>Alles Wichtige in einem Schritt.</Text>
+          <View style={styles.progressRow}>
+            <StatPill icon="git-compare-outline" label="Optionen" value={`${draftOptions.length}`} />
+            <StatPill icon="options-outline" label="Kriterien" value={`${draftCriteria.length}`} />
+          </View>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>1. Titel</Text>
-          <TextInput
+          <SectionHeader eyebrow="Pflicht" title="Worum geht es?" />
+          <AppInput
             accessibilityLabel="Titel der Entscheidung"
+            hasError={feedbackMessage.length > 0 && title.trim().length === 0}
             onChangeText={setTitle}
-            placeholder="Titel der Entscheidung"
-            placeholderTextColor={theme.colors.textMuted}
-            style={[styles.input, feedbackMessage.length > 0 && title.trim().length === 0 && styles.inputError]}
+            placeholder="z. B. Neuer Laptop"
             value={title}
           />
         </View>
 
         <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>2. Beschreibung</Text>
-            <Pressable
-              accessibilityRole="button"
-              onPress={() => setIsDescriptionVisible((currentValue) => !currentValue)}
-              style={({ pressed }) => [styles.secondaryButton, pressed && styles.secondaryButtonPressed]}>
-              <Text style={styles.secondaryButtonText}>
-                {isDescriptionVisible ? 'Ausblenden' : 'Beschreibung hinzufügen'}
-              </Text>
-            </Pressable>
-          </View>
+          <SectionHeader
+            action={
+              <AppButton
+                icon={isDescriptionVisible ? 'remove' : 'add'}
+                onPress={() => setIsDescriptionVisible((currentValue) => !currentValue)}
+                title={isDescriptionVisible ? 'Weniger' : 'Beschreibung'}
+                variant="ghost"
+              />
+            }
+            eyebrow="Optional"
+            title="Kontext"
+          />
           {isDescriptionVisible ? (
-            <TextInput
+            <AppInput
               accessibilityLabel="Beschreibung optional"
               multiline
               onChangeText={setDescription}
-              placeholder="Beschreibung optional"
-              placeholderTextColor={theme.colors.textMuted}
-              style={[styles.input, styles.textArea]}
-              textAlignVertical="top"
+              placeholder="Was ist wichtig, bevor du bewertest?"
               value={description}
             />
           ) : null}
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>3. Optionen</Text>
-          <View style={styles.formCard}>
-            <TextInput
+          <SectionHeader eyebrow="Sammeln" title="Optionen" />
+          <AppCard style={styles.formCard}>
+            <AppInput
               accessibilityLabel="Name der Option"
               onChangeText={setOptionName}
-              placeholder="Name der Option"
-              placeholderTextColor={theme.colors.textMuted}
-              style={styles.input}
+              placeholder="Option hinzufügen"
               value={optionName}
             />
             {isOptionNoteVisible ? (
-              <TextInput
+              <AppInput
                 accessibilityLabel="Notiz zur Option optional"
                 multiline
                 onChangeText={setOptionNote}
                 placeholder="Notiz optional"
-                placeholderTextColor={theme.colors.textMuted}
-                style={[styles.input, styles.textAreaSmall]}
-                textAlignVertical="top"
+                style={styles.compactTextArea}
                 value={optionNote}
               />
             ) : (
-              <Pressable
-                accessibilityRole="button"
+              <AppButton
+                icon="document-text-outline"
                 onPress={() => setIsOptionNoteVisible(true)}
-                style={({ pressed }) => [styles.ghostButton, pressed && styles.ghostButtonPressed]}>
-                <Text style={styles.ghostButtonText}>Notiz hinzufügen</Text>
-              </Pressable>
+                title="Notiz"
+                variant="ghost"
+              />
             )}
-            <Pressable
-              accessibilityRole="button"
-              onPress={addDraftOption}
-              style={({ pressed }) => [styles.secondaryButtonWide, pressed && styles.secondaryButtonPressed]}>
-              <Text style={styles.secondaryButtonText}>+ Option hinzufügen</Text>
-            </Pressable>
-          </View>
+            <AppButton icon="add" onPress={addDraftOption} title="Option übernehmen" variant="secondary" />
+          </AppCard>
 
           {draftOptions.length > 0 ? (
             <View style={styles.itemList}>
               {draftOptions.map((option) => (
-                <View key={option.id} style={styles.itemCard}>
+                <AppCard key={option.id} style={styles.itemCard}>
+                  <View style={styles.itemIcon}>
+                    <Ionicons color={theme.colors.primary} name="radio-button-on-outline" size={18} />
+                  </View>
                   <View style={styles.itemContent}>
                     <Text style={styles.itemTitle}>{option.name}</Text>
                     {option.note.length > 0 ? <Text style={styles.itemText}>{option.note}</Text> : null}
                   </View>
-                  <Pressable
-                    accessibilityRole="button"
-                    accessibilityLabel={`Option ${option.name} löschen`}
+                  <IconButton
+                    icon="trash-outline"
+                    label={`Option ${option.name} löschen`}
                     onPress={() =>
                       setDraftOptions((currentOptions) =>
                         currentOptions.filter((currentOption) => currentOption.id !== option.id)
                       )
                     }
-                    style={({ pressed }) => [styles.deleteButton, pressed && styles.deleteButtonPressed]}>
-                    <Text style={styles.deleteButtonText}>Löschen</Text>
-                  </Pressable>
-                </View>
+                    variant="danger"
+                  />
+                </AppCard>
               ))}
             </View>
           ) : (
-            <Text style={styles.helperText}>Du kannst Optionen jetzt oder später auf der Detailseite hinzufügen.</Text>
+            <Text style={styles.helperText}>Optionen kannst du auch später ergänzen.</Text>
           )}
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>4. Kriterien</Text>
-          <View style={styles.formCard}>
-            <TextInput
+          <SectionHeader eyebrow="Bewerten nach" title="Kriterien" />
+          <AppCard style={styles.formCard}>
+            <AppInput
               accessibilityLabel="Name des Kriteriums"
               onChangeText={setCriterionName}
-              placeholder="Name des Kriteriums"
-              placeholderTextColor={theme.colors.textMuted}
-              style={styles.input}
+              placeholder="Kriterium hinzufügen"
               value={criterionName}
             />
             <View style={styles.weightGroup}>
@@ -288,13 +283,14 @@ export default function CreateDecisionScreen() {
               <View style={styles.weightButtons}>
                 {criterionWeights.map((weight) => (
                   <Pressable
-                    key={weight}
                     accessibilityRole="button"
                     accessibilityState={{ selected: criterionWeight === weight }}
+                    key={weight}
                     onPress={() => setCriterionWeight(weight)}
-                    style={[
+                    style={({ pressed }) => [
                       styles.weightButton,
                       criterionWeight === weight && styles.weightButtonSelected,
+                      pressed && styles.weightButtonPressed,
                     ]}>
                     <Text
                       style={[
@@ -307,38 +303,35 @@ export default function CreateDecisionScreen() {
                 ))}
               </View>
             </View>
-            <Pressable
-              accessibilityRole="button"
-              onPress={addDraftCriterion}
-              style={({ pressed }) => [styles.secondaryButtonWide, pressed && styles.secondaryButtonPressed]}>
-              <Text style={styles.secondaryButtonText}>+ Kriterium hinzufügen</Text>
-            </Pressable>
-          </View>
+            <AppButton icon="add" onPress={addDraftCriterion} title="Kriterium übernehmen" variant="secondary" />
+          </AppCard>
 
           {draftCriteria.length > 0 ? (
             <View style={styles.itemList}>
               {draftCriteria.map((criterion) => (
-                <View key={criterion.id} style={styles.itemCard}>
+                <AppCard key={criterion.id} style={styles.itemCard}>
+                  <View style={styles.itemIcon}>
+                    <Ionicons color={theme.colors.primary} name="speedometer-outline" size={18} />
+                  </View>
                   <View style={styles.itemContent}>
                     <Text style={styles.itemTitle}>{criterion.name}</Text>
-                    <Text style={styles.itemText}>Gewichtung: {criterion.weight}</Text>
+                    <Text style={styles.itemText}>Gewichtung {criterion.weight}</Text>
                   </View>
-                  <Pressable
-                    accessibilityRole="button"
-                    accessibilityLabel={`Kriterium ${criterion.name} löschen`}
+                  <IconButton
+                    icon="trash-outline"
+                    label={`Kriterium ${criterion.name} löschen`}
                     onPress={() =>
                       setDraftCriteria((currentCriteria) =>
                         currentCriteria.filter((currentCriterion) => currentCriterion.id !== criterion.id)
                       )
                     }
-                    style={({ pressed }) => [styles.deleteButton, pressed && styles.deleteButtonPressed]}>
-                    <Text style={styles.deleteButtonText}>Löschen</Text>
-                  </Pressable>
-                </View>
+                    variant="danger"
+                  />
+                </AppCard>
               ))}
             </View>
           ) : (
-            <Text style={styles.helperText}>Kriterien lassen sich auch später ergänzen.</Text>
+            <Text style={styles.helperText}>Kriterien bestimmen später die Ergebnisqualität.</Text>
           )}
 
           {feedbackMessage.length > 0 ? (
@@ -349,19 +342,14 @@ export default function CreateDecisionScreen() {
         </View>
       </ScrollView>
 
-      <View style={[styles.actionBar, { paddingBottom: Math.max(insets.bottom + 12, 28) }]}>
-        <Pressable
-          accessibilityState={{ disabled: isSaving }}
+      <View style={[styles.actionBar, { paddingBottom: Math.max(insets.bottom + 14, 30) }]}>
+        <AppButton
           disabled={isSaving}
-          accessibilityRole="button"
+          icon="checkmark"
           onPress={handleSave}
-          style={({ pressed }) => [
-            styles.primaryButton,
-            pressed && !isSaving && styles.primaryButtonPressed,
-            isSaving && styles.primaryButtonDisabled,
-          ]}>
-          <Text style={styles.primaryButtonText}>{isSaving ? 'Speichern...' : 'Entscheidung speichern'}</Text>
-        </Pressable>
+          style={styles.saveButton}
+          title={isSaving ? 'Speichere...' : 'Entscheidung speichern'}
+        />
       </View>
     </View>
   );
@@ -373,66 +361,40 @@ const createStyles = (theme: AppThemeValues) => StyleSheet.create({
     backgroundColor: theme.colors.surface,
   },
   content: {
-    gap: 28,
+    gap: 24,
     paddingHorizontal: theme.spacing.screenX,
     paddingTop: 32,
   },
   header: {
-    gap: 8,
+    gap: 10,
+  },
+  kicker: {
+    color: theme.colors.primary,
+    fontSize: 12,
+    fontWeight: '900',
+    letterSpacing: 0,
+    textTransform: 'uppercase',
   },
   title: {
-    color: theme.colors.text,
+    color: theme.colors.textStrong,
     fontSize: 30,
-    fontWeight: '700',
+    fontWeight: '900',
+    lineHeight: 36,
   },
-  subtitle: {
-    color: theme.colors.textSecondary,
-    fontSize: 16,
-    lineHeight: 23,
+  progressRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginTop: 2,
   },
   section: {
     gap: 12,
   },
-  sectionHeader: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: 12,
-    justifyContent: 'space-between',
-  },
-  sectionTitle: {
-    color: theme.colors.text,
-    flex: 1,
-    fontSize: 21,
-    fontWeight: '700',
-  },
   formCard: {
-    backgroundColor: theme.colors.surfaceRaised,
-    borderColor: theme.colors.border,
-    borderRadius: theme.radius.md,
-    borderWidth: 1,
     gap: 12,
-    padding: 16,
-    ...theme.shadow.card,
   },
-  input: {
-    backgroundColor: theme.colors.surfaceRaised,
-    borderColor: theme.colors.border,
-    borderRadius: theme.radius.md,
-    borderWidth: 1,
-    color: theme.colors.text,
-    fontSize: 16,
-    minHeight: 54,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-  },
-  inputError: {
-    borderColor: theme.colors.danger,
-  },
-  textArea: {
-    minHeight: 120,
-  },
-  textAreaSmall: {
-    minHeight: 88,
+  compactTextArea: {
+    minHeight: 86,
   },
   helperText: {
     color: theme.colors.textSecondary,
@@ -440,108 +402,49 @@ const createStyles = (theme: AppThemeValues) => StyleSheet.create({
     lineHeight: 20,
   },
   errorText: {
-    color: theme.colors.danger,
+    color: theme.colors.dangerStrong,
     fontSize: 15,
+    fontWeight: '700',
     lineHeight: 21,
   },
   itemList: {
-    gap: 10,
+    gap: 9,
   },
   itemCard: {
     alignItems: 'center',
-    backgroundColor: theme.colors.surfaceRaised,
-    borderColor: theme.colors.border,
-    borderRadius: theme.radius.sm,
-    borderWidth: 1,
     flexDirection: 'row',
     gap: 12,
-    padding: 14,
-    ...theme.shadow.card,
+    padding: 12,
+  },
+  itemIcon: {
+    alignItems: 'center',
+    backgroundColor: theme.colors.primarySoft,
+    borderRadius: theme.radius.pill,
+    height: 36,
+    justifyContent: 'center',
+    width: 36,
   },
   itemContent: {
     flex: 1,
-    gap: 4,
+    gap: 3,
   },
   itemTitle: {
-    color: theme.colors.text,
-    fontSize: 17,
-    fontWeight: '700',
+    color: theme.colors.textStrong,
+    fontSize: 16,
+    fontWeight: '900',
   },
   itemText: {
     color: theme.colors.textSecondary,
-    fontSize: 14,
-    lineHeight: 20,
-  },
-  secondaryButton: {
-    alignItems: 'center',
-    backgroundColor: theme.colors.primarySoft,
-    borderColor: theme.colors.primaryBorder,
-    borderRadius: theme.radius.sm,
-    borderWidth: 1,
-    justifyContent: 'center',
-    minHeight: theme.touch.min,
-    paddingHorizontal: 12,
-  },
-  secondaryButtonWide: {
-    alignItems: 'center',
-    backgroundColor: theme.colors.primarySoft,
-    borderColor: theme.colors.primaryBorder,
-    borderRadius: theme.radius.sm,
-    borderWidth: 1,
-    justifyContent: 'center',
-    minHeight: theme.touch.min,
-    paddingHorizontal: 12,
-  },
-  secondaryButtonPressed: {
-    backgroundColor: theme.colors.primarySoftPressed,
-  },
-  secondaryButtonText: {
-    color: theme.colors.info,
-    fontSize: 14,
-    fontWeight: '700',
-    textAlign: 'center',
-  },
-  ghostButton: {
-    alignItems: 'center',
-    borderColor: theme.colors.border,
-    borderRadius: theme.radius.sm,
-    borderWidth: 1,
-    justifyContent: 'center',
-    minHeight: theme.touch.min,
-  },
-  ghostButtonPressed: {
-    backgroundColor: theme.colors.surfaceMuted,
-  },
-  ghostButtonText: {
-    color: theme.colors.textSecondary,
-    fontSize: 14,
-    fontWeight: '700',
-  },
-  deleteButton: {
-    alignItems: 'center',
-    backgroundColor: theme.colors.dangerSoft,
-    borderColor: theme.colors.dangerBorder,
-    borderRadius: theme.radius.sm,
-    borderWidth: 1,
-    justifyContent: 'center',
-    minHeight: theme.touch.min,
-    paddingHorizontal: 12,
-  },
-  deleteButtonPressed: {
-    backgroundColor: theme.colors.dangerSoftPressed,
-  },
-  deleteButtonText: {
-    color: theme.colors.dangerStrong,
-    fontSize: 14,
-    fontWeight: '700',
+    fontSize: 13,
+    lineHeight: 19,
   },
   weightGroup: {
     gap: 8,
   },
   weightLabel: {
     color: theme.colors.textStrong,
-    fontSize: 15,
-    fontWeight: '700',
+    fontSize: 14,
+    fontWeight: '900',
   },
   weightButtons: {
     flexDirection: 'row',
@@ -549,13 +452,16 @@ const createStyles = (theme: AppThemeValues) => StyleSheet.create({
   },
   weightButton: {
     alignItems: 'center',
-    backgroundColor: theme.colors.surfaceRaised,
-    borderColor: theme.colors.border,
-    borderRadius: theme.radius.sm,
+    backgroundColor: theme.colors.surfaceTint,
+    borderColor: theme.colors.borderSoft,
+    borderRadius: theme.radius.pill,
     borderWidth: 1,
     flex: 1,
     justifyContent: 'center',
     minHeight: theme.touch.min,
+  },
+  weightButtonPressed: {
+    backgroundColor: theme.colors.surfacePressed,
   },
   weightButtonSelected: {
     backgroundColor: theme.colors.primary,
@@ -564,7 +470,7 @@ const createStyles = (theme: AppThemeValues) => StyleSheet.create({
   weightButtonText: {
     color: theme.colors.textStrong,
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: '900',
   },
   weightButtonTextSelected: {
     color: theme.colors.onPrimary,
@@ -574,28 +480,10 @@ const createStyles = (theme: AppThemeValues) => StyleSheet.create({
     borderTopColor: theme.colors.borderSoft,
     borderTopWidth: 1,
     paddingHorizontal: theme.spacing.screenX,
-    paddingTop: 16,
+    paddingTop: 14,
     ...theme.shadow.footer,
   },
-  primaryButton: {
-    alignItems: 'center',
-    backgroundColor: theme.colors.primary,
-    borderRadius: theme.radius.sm,
-    justifyContent: 'center',
-    minHeight: theme.touch.primary,
-    paddingHorizontal: 20,
-    paddingVertical: 14,
-  },
-  primaryButtonPressed: {
-    backgroundColor: theme.colors.primaryPressed,
-  },
-  primaryButtonDisabled: {
-    backgroundColor: theme.colors.primaryDisabled,
-  },
-  primaryButtonText: {
-    color: theme.colors.onPrimary,
-    fontSize: 17,
-    fontWeight: '700',
-    textAlign: 'center',
+  saveButton: {
+    width: '100%',
   },
 });

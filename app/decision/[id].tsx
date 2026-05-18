@@ -1,8 +1,10 @@
+import { Ionicons } from '@expo/vector-icons';
 import { Link, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { AppButton, AppCard, AppInput, EmptyState, IconButton, SectionHeader, StatPill } from '@/components/ui/app-ui';
 import { AppThemeValues, useAppTheme } from '@/constants/theme';
 import { useDecisions } from '@/contexts/decision-context';
 import { CriterionWeight } from '@/types/decision';
@@ -37,8 +39,8 @@ export default function DecisionDetailScreen() {
   if (!isDatabaseReady) {
     return (
       <View style={styles.screen}>
-        <View style={styles.notFoundContent}>
-          <Text style={styles.notFoundTitle}>Entscheidung wird geladen</Text>
+        <View style={styles.messageContent}>
+          <EmptyState icon="sync-outline" title="Entscheidung wird geladen" />
         </View>
       </View>
     );
@@ -47,8 +49,8 @@ export default function DecisionDetailScreen() {
   if (databaseError.length > 0) {
     return (
       <View style={styles.screen}>
-        <View style={styles.notFoundContent}>
-          <Text style={styles.notFoundTitle}>{databaseError}</Text>
+        <View style={styles.messageContent}>
+          <EmptyState icon="alert-circle-outline" title={databaseError} />
         </View>
       </View>
     );
@@ -57,18 +59,14 @@ export default function DecisionDetailScreen() {
   if (decision === undefined) {
     return (
       <View style={styles.screen}>
-        <View style={styles.notFoundContent}>
-          <Text style={styles.notFoundTitle}>Entscheidung nicht gefunden</Text>
-          <Text style={styles.notFoundText}>
-            Diese Entscheidung ist nur im lokalen App-Zustand vorhanden und kann nach einem Neustart
-            verschwinden.
-          </Text>
+        <View style={styles.messageContent}>
+          <EmptyState
+            icon="help-circle-outline"
+            title="Entscheidung nicht gefunden"
+            message="Die lokale Datenbank konnte diesen Eintrag nicht laden."
+          />
           <Link href="/" asChild>
-            <Pressable
-              accessibilityRole="button"
-              style={({ pressed }) => [styles.primaryButton, pressed && styles.primaryButtonPressed]}>
-              <Text style={styles.primaryButtonText}>Zur Startseite</Text>
-            </Pressable>
+            <AppButton icon="home-outline" title="Zur Startseite" />
           </Link>
         </View>
       </View>
@@ -127,48 +125,52 @@ export default function DecisionDetailScreen() {
   return (
     <View style={styles.screen}>
       <ScrollView
-        contentContainerStyle={[styles.content, { paddingBottom: Math.max(insets.bottom + 120, 136) }]}>
-        <View style={styles.header}>
+        contentContainerStyle={[styles.content, { paddingBottom: Math.max(insets.bottom + 120, 140) }]}
+        keyboardShouldPersistTaps="handled">
+        <AppCard elevated style={styles.heroCard}>
+          <Text style={styles.kicker}>Entscheidung</Text>
           <Text style={styles.title}>{decision.title}</Text>
           {decision.description.length > 0 ? (
             <Text style={styles.description}>{decision.description}</Text>
           ) : null}
-        </View>
+          <View style={styles.statsRow}>
+            <StatPill icon="list-outline" label="Optionen" value={`${decision.options.length}`} emphasis />
+            <StatPill icon="options-outline" label="Kriterien" value={`${decision.criteria.length}`} />
+          </View>
+        </AppCard>
 
         <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Optionen</Text>
-            <Pressable
-              accessibilityRole="button"
-              onPress={() => {
-                setIsOptionFormVisible((currentValue) => !currentValue);
-                setOptionError('');
-              }}
-              style={({ pressed }) => [styles.secondaryButton, pressed && styles.secondaryButtonPressed]}>
-              <Text style={styles.secondaryButtonText}>
-                {isOptionFormVisible ? 'Abbrechen' : 'Option hinzufügen'}
-              </Text>
-            </Pressable>
-          </View>
+          <SectionHeader
+            action={
+              <AppButton
+                icon={isOptionFormVisible ? 'close' : 'add'}
+                onPress={() => {
+                  setIsOptionFormVisible((currentValue) => !currentValue);
+                  setOptionError('');
+                }}
+                title={isOptionFormVisible ? 'Schließen' : 'Option'}
+                variant="secondary"
+              />
+            }
+            eyebrow="Vergleichen"
+            title="Optionen"
+          />
 
           {isOptionFormVisible ? (
-            <View style={styles.formCard}>
-              <TextInput
+            <AppCard style={styles.formCard}>
+              <AppInput
                 accessibilityLabel="Name der Option"
+                hasError={optionError.length > 0}
                 onChangeText={setOptionName}
-                placeholder="Name der Option"
-                placeholderTextColor={theme.colors.textMuted}
-                style={[styles.input, optionError.length > 0 && styles.inputError]}
+                placeholder="Option"
                 value={optionName}
               />
-              <TextInput
+              <AppInput
                 accessibilityLabel="Notiz optional"
                 multiline
                 onChangeText={setOptionNote}
                 placeholder="Notiz optional"
-                placeholderTextColor={theme.colors.textMuted}
-                style={[styles.input, styles.textArea]}
-                textAlignVertical="top"
+                style={styles.compactTextArea}
                 value={optionNote}
               />
               {optionError.length > 0 ? (
@@ -176,69 +178,67 @@ export default function DecisionDetailScreen() {
                   {optionError}
                 </Text>
               ) : null}
-              <Pressable
-                accessibilityRole="button"
-                onPress={handleAddOption}
-                style={({ pressed }) => [styles.primaryButton, pressed && styles.primaryButtonPressed]}>
-                <Text style={styles.primaryButtonText}>Option speichern</Text>
-              </Pressable>
-            </View>
+              <AppButton icon="checkmark" onPress={handleAddOption} title="Speichern" />
+            </AppCard>
           ) : null}
 
           {decision.options.length === 0 ? (
-            <View style={styles.emptyState}>
-              <Text style={styles.emptyTitle}>Noch keine Optionen</Text>
-              <Text style={styles.emptyText}>Füge Optionen hinzu, zwischen denen du entscheiden willst.</Text>
-            </View>
+            <EmptyState
+              icon="radio-button-off-outline"
+              title="Noch keine Optionen"
+              message="Füge Alternativen hinzu, die du gegeneinander bewerten willst."
+            />
           ) : (
             <View style={styles.itemList}>
               {decision.options.map((option) => (
-                <View key={option.id} style={styles.itemCard}>
+                <AppCard key={option.id} style={styles.itemCard}>
+                  <View style={styles.itemIcon}>
+                    <Ionicons color={theme.colors.primary} name="radio-button-on-outline" size={18} />
+                  </View>
                   <View style={styles.itemContent}>
                     <Text style={styles.itemTitle}>{option.name}</Text>
                     {option.note.length > 0 ? <Text style={styles.itemText}>{option.note}</Text> : null}
                   </View>
-                  <Pressable
-                    accessibilityRole="button"
-                    accessibilityLabel={`Option ${option.name} löschen`}
+                  <IconButton
+                    icon="trash-outline"
+                    label={`Option ${option.name} löschen`}
                     onPress={() => {
                       deleteOption(decision.id, option.id).catch((error) => {
                         console.error('Failed to delete option', error);
                       });
                     }}
-                    style={({ pressed }) => [styles.deleteButton, pressed && styles.deleteButtonPressed]}>
-                    <Text style={styles.deleteButtonText}>Löschen</Text>
-                  </Pressable>
-                </View>
+                    variant="danger"
+                  />
+                </AppCard>
               ))}
             </View>
           )}
         </View>
 
         <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Kriterien</Text>
-            <Pressable
-              accessibilityRole="button"
-              onPress={() => {
-                setIsCriterionFormVisible((currentValue) => !currentValue);
-                setCriterionError('');
-              }}
-              style={({ pressed }) => [styles.secondaryButton, pressed && styles.secondaryButtonPressed]}>
-              <Text style={styles.secondaryButtonText}>
-                {isCriterionFormVisible ? 'Abbrechen' : 'Kriterium hinzufügen'}
-              </Text>
-            </Pressable>
-          </View>
+          <SectionHeader
+            action={
+              <AppButton
+                icon={isCriterionFormVisible ? 'close' : 'add'}
+                onPress={() => {
+                  setIsCriterionFormVisible((currentValue) => !currentValue);
+                  setCriterionError('');
+                }}
+                title={isCriterionFormVisible ? 'Schließen' : 'Kriterium'}
+                variant="secondary"
+              />
+            }
+            eyebrow="Bewerten"
+            title="Kriterien"
+          />
 
           {isCriterionFormVisible ? (
-            <View style={styles.formCard}>
-              <TextInput
+            <AppCard style={styles.formCard}>
+              <AppInput
                 accessibilityLabel="Name des Kriteriums"
+                hasError={criterionError.length > 0}
                 onChangeText={setCriterionName}
-                placeholder="Name des Kriteriums"
-                placeholderTextColor={theme.colors.textMuted}
-                style={[styles.input, criterionError.length > 0 && styles.inputError]}
+                placeholder="Kriterium"
                 value={criterionName}
               />
               <View style={styles.weightGroup}>
@@ -246,13 +246,14 @@ export default function DecisionDetailScreen() {
                 <View style={styles.weightButtons}>
                   {criterionWeights.map((weight) => (
                     <Pressable
-                      key={weight}
                       accessibilityRole="button"
                       accessibilityState={{ selected: criterionWeight === weight }}
+                      key={weight}
                       onPress={() => setCriterionWeight(weight)}
-                      style={[
+                      style={({ pressed }) => [
                         styles.weightButton,
                         criterionWeight === weight && styles.weightButtonSelected,
+                        pressed && styles.weightButtonPressed,
                       ]}>
                       <Text
                         style={[
@@ -270,53 +271,47 @@ export default function DecisionDetailScreen() {
                   {criterionError}
                 </Text>
               ) : null}
-              <Pressable
-                accessibilityRole="button"
-                onPress={handleAddCriterion}
-                style={({ pressed }) => [styles.primaryButton, pressed && styles.primaryButtonPressed]}>
-                <Text style={styles.primaryButtonText}>Kriterium speichern</Text>
-              </Pressable>
-            </View>
+              <AppButton icon="checkmark" onPress={handleAddCriterion} title="Speichern" />
+            </AppCard>
           ) : null}
 
           {decision.criteria.length === 0 ? (
-            <View style={styles.emptyState}>
-              <Text style={styles.emptyTitle}>Noch keine Kriterien</Text>
-              <Text style={styles.emptyText}>Füge Kriterien hinzu, nach denen du bewerten willst.</Text>
-            </View>
+            <EmptyState
+              icon="speedometer-outline"
+              title="Noch keine Kriterien"
+              message="Lege fest, wonach die Optionen bewertet werden."
+            />
           ) : (
             <View style={styles.itemList}>
               {decision.criteria.map((criterion) => (
-                <View key={criterion.id} style={styles.itemCard}>
+                <AppCard key={criterion.id} style={styles.itemCard}>
+                  <View style={styles.itemIcon}>
+                    <Ionicons color={theme.colors.primary} name="speedometer-outline" size={18} />
+                  </View>
                   <View style={styles.itemContent}>
                     <Text style={styles.itemTitle}>{criterion.name}</Text>
-                    <Text style={styles.itemText}>Gewichtung: {criterion.weight}</Text>
+                    <Text style={styles.itemText}>Gewichtung {criterion.weight}</Text>
                   </View>
-                  <Pressable
-                    accessibilityRole="button"
-                    accessibilityLabel={`Kriterium ${criterion.name} löschen`}
+                  <IconButton
+                    icon="trash-outline"
+                    label={`Kriterium ${criterion.name} löschen`}
                     onPress={() => {
                       deleteCriterion(decision.id, criterion.id).catch((error) => {
                         console.error('Failed to delete criterion', error);
                       });
                     }}
-                    style={({ pressed }) => [styles.deleteButton, pressed && styles.deleteButtonPressed]}>
-                    <Text style={styles.deleteButtonText}>Löschen</Text>
-                  </Pressable>
-                </View>
+                    variant="danger"
+                  />
+                </AppCard>
               ))}
             </View>
           )}
         </View>
       </ScrollView>
 
-      <View style={[styles.actionBar, { paddingBottom: Math.max(insets.bottom + 12, 28) }]}>
+      <View style={[styles.actionBar, { paddingBottom: Math.max(insets.bottom + 14, 30) }]}>
         <Link href={{ pathname: '/decision/[id]/ratings', params: { id: decision.id } }} asChild>
-          <Pressable
-            accessibilityRole="button"
-            style={({ pressed }) => [styles.primaryButton, pressed && styles.primaryButtonPressed]}>
-            <Text style={styles.primaryButtonText}>Bewertung starten / Ergebnisse anzeigen</Text>
-          </Pressable>
+          <AppButton icon="analytics-outline" title="Bewerten" />
         </Link>
       </View>
     </View>
@@ -333,178 +328,86 @@ const createStyles = (theme: AppThemeValues) => StyleSheet.create({
     paddingHorizontal: theme.spacing.screenX,
     paddingTop: 32,
   },
-  header: {
-    gap: 12,
+  heroCard: {
+    gap: 11,
+  },
+  kicker: {
+    color: theme.colors.primary,
+    fontSize: 12,
+    fontWeight: '900',
+    letterSpacing: 0,
+    textTransform: 'uppercase',
   },
   title: {
-    color: theme.colors.text,
+    color: theme.colors.textStrong,
     fontSize: 30,
-    fontWeight: '700',
+    fontWeight: '900',
+    lineHeight: 36,
   },
   description: {
     color: theme.colors.textSecondary,
-    fontSize: 17,
-    lineHeight: 24,
+    fontSize: 16,
+    lineHeight: 23,
+  },
+  statsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    paddingTop: 2,
   },
   section: {
     gap: 12,
   },
-  sectionHeader: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: 12,
-    justifyContent: 'space-between',
-  },
-  sectionTitle: {
-    color: theme.colors.text,
-    flex: 1,
-    fontSize: 22,
-    fontWeight: '700',
-  },
   formCard: {
-    backgroundColor: theme.colors.surfaceRaised,
-    borderColor: theme.colors.border,
-    borderRadius: theme.radius.md,
-    borderWidth: 1,
     gap: 12,
-    padding: 16,
-    ...theme.shadow.card,
   },
-  input: {
-    backgroundColor: theme.colors.surfaceRaised,
-    borderColor: theme.colors.border,
-    borderRadius: theme.radius.md,
-    borderWidth: 1,
-    color: theme.colors.text,
-    fontSize: 16,
-    minHeight: 52,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-  },
-  inputError: {
-    borderColor: theme.colors.danger,
-  },
-  textArea: {
-    minHeight: 96,
+  compactTextArea: {
+    minHeight: 86,
   },
   errorText: {
-    color: theme.colors.danger,
-    fontSize: 14,
-    lineHeight: 20,
-  },
-  emptyState: {
-    alignItems: 'center',
-    backgroundColor: theme.colors.surfaceRaised,
-    borderColor: theme.colors.border,
-    borderRadius: theme.radius.md,
-    borderWidth: 1,
-    gap: 8,
-    justifyContent: 'center',
-    minHeight: 132,
-    padding: 20,
-  },
-  emptyTitle: {
-    color: theme.colors.textStrong,
-    fontSize: 18,
-    fontWeight: '700',
-    textAlign: 'center',
-  },
-  emptyText: {
-    color: theme.colors.textSecondary,
-    fontSize: 15,
-    lineHeight: 21,
-    textAlign: 'center',
-  },
-  itemList: {
-    gap: 10,
-  },
-  itemCard: {
-    alignItems: 'center',
-    backgroundColor: theme.colors.surfaceRaised,
-    borderColor: theme.colors.border,
-    borderRadius: theme.radius.sm,
-    borderWidth: 1,
-    flexDirection: 'row',
-    gap: 12,
-    padding: 14,
-    ...theme.shadow.card,
-  },
-  itemContent: {
-    flex: 1,
-    gap: 4,
-  },
-  itemTitle: {
-    color: theme.colors.text,
-    fontSize: 17,
-    fontWeight: '700',
-  },
-  itemText: {
-    color: theme.colors.textSecondary,
-    fontSize: 14,
-    lineHeight: 20,
-  },
-  primaryButton: {
-    alignItems: 'center',
-    backgroundColor: theme.colors.primary,
-    borderRadius: theme.radius.sm,
-    justifyContent: 'center',
-    minHeight: theme.touch.primary,
-    paddingHorizontal: 20,
-    paddingVertical: 14,
-  },
-  primaryButtonPressed: {
-    backgroundColor: theme.colors.primaryPressed,
-  },
-  primaryButtonText: {
-    color: theme.colors.onPrimary,
-    fontSize: 17,
-    fontWeight: '700',
-    textAlign: 'center',
-  },
-  secondaryButton: {
-    alignItems: 'center',
-    backgroundColor: theme.colors.primarySoft,
-    borderColor: theme.colors.primaryBorder,
-    borderRadius: theme.radius.sm,
-    borderWidth: 1,
-    justifyContent: 'center',
-    minHeight: theme.touch.min,
-    paddingHorizontal: 12,
-  },
-  secondaryButtonPressed: {
-    backgroundColor: theme.colors.primarySoftPressed,
-  },
-  secondaryButtonText: {
-    color: theme.colors.info,
-    fontSize: 14,
-    fontWeight: '700',
-    textAlign: 'center',
-  },
-  deleteButton: {
-    alignItems: 'center',
-    backgroundColor: theme.colors.dangerSoft,
-    borderColor: theme.colors.dangerBorder,
-    borderRadius: theme.radius.sm,
-    borderWidth: 1,
-    justifyContent: 'center',
-    minHeight: theme.touch.min,
-    paddingHorizontal: 12,
-  },
-  deleteButtonPressed: {
-    backgroundColor: theme.colors.dangerSoftPressed,
-  },
-  deleteButtonText: {
     color: theme.colors.dangerStrong,
     fontSize: 14,
     fontWeight: '700',
+    lineHeight: 20,
+  },
+  itemList: {
+    gap: 9,
+  },
+  itemCard: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 12,
+    padding: 12,
+  },
+  itemIcon: {
+    alignItems: 'center',
+    backgroundColor: theme.colors.primarySoft,
+    borderRadius: theme.radius.pill,
+    height: 36,
+    justifyContent: 'center',
+    width: 36,
+  },
+  itemContent: {
+    flex: 1,
+    gap: 3,
+  },
+  itemTitle: {
+    color: theme.colors.textStrong,
+    fontSize: 16,
+    fontWeight: '900',
+  },
+  itemText: {
+    color: theme.colors.textSecondary,
+    fontSize: 13,
+    lineHeight: 19,
   },
   weightGroup: {
     gap: 8,
   },
   weightLabel: {
     color: theme.colors.textStrong,
-    fontSize: 15,
-    fontWeight: '700',
+    fontSize: 14,
+    fontWeight: '900',
   },
   weightButtons: {
     flexDirection: 'row',
@@ -512,13 +415,16 @@ const createStyles = (theme: AppThemeValues) => StyleSheet.create({
   },
   weightButton: {
     alignItems: 'center',
-    backgroundColor: theme.colors.surfaceRaised,
-    borderColor: theme.colors.border,
-    borderRadius: theme.radius.sm,
+    backgroundColor: theme.colors.surfaceTint,
+    borderColor: theme.colors.borderSoft,
+    borderRadius: theme.radius.pill,
     borderWidth: 1,
     flex: 1,
     justifyContent: 'center',
     minHeight: theme.touch.min,
+  },
+  weightButtonPressed: {
+    backgroundColor: theme.colors.surfacePressed,
   },
   weightButtonSelected: {
     backgroundColor: theme.colors.primary,
@@ -527,7 +433,7 @@ const createStyles = (theme: AppThemeValues) => StyleSheet.create({
   weightButtonText: {
     color: theme.colors.textStrong,
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: '900',
   },
   weightButtonTextSelected: {
     color: theme.colors.onPrimary,
@@ -537,25 +443,13 @@ const createStyles = (theme: AppThemeValues) => StyleSheet.create({
     borderTopColor: theme.colors.borderSoft,
     borderTopWidth: 1,
     paddingHorizontal: theme.spacing.screenX,
-    paddingTop: 16,
+    paddingTop: 14,
     ...theme.shadow.footer,
   },
-  notFoundContent: {
+  messageContent: {
     flex: 1,
     gap: 16,
     justifyContent: 'center',
     paddingHorizontal: theme.spacing.screenX,
-  },
-  notFoundTitle: {
-    color: theme.colors.text,
-    fontSize: 24,
-    fontWeight: '700',
-    textAlign: 'center',
-  },
-  notFoundText: {
-    color: theme.colors.textSecondary,
-    fontSize: 16,
-    lineHeight: 23,
-    textAlign: 'center',
   },
 });

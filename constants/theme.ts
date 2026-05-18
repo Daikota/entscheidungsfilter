@@ -33,6 +33,8 @@ export const AppColorSchemes = {
     surfaceRaised: '#8EB1C7',
     surfacePressed: '#7EA4BC',
     surfaceMuted: '#F6F1EA',
+    surfaceElevated: '#FFFFFF',
+    surfaceTint: '#EAF2F7',
     text: '#1F2430',
     textSecondary: '#4A5565',
     textMuted: '#6B7280',
@@ -60,6 +62,8 @@ export const AppColorSchemes = {
     surfaceRaised: '#403F4C',
     surfacePressed: '#4B4A59',
     surfaceMuted: '#353447',
+    surfaceElevated: '#464554',
+    surfaceTint: '#363548',
     text: '#FEFDFF',
     textSecondary: '#D7D3DF',
     textMuted: '#B8B2C2',
@@ -97,6 +101,9 @@ export const AppTheme = {
   radius: {
     sm: 8,
     md: 12,
+    lg: 18,
+    xl: 24,
+    pill: 999,
   },
   touch: {
     min: 48,
@@ -109,6 +116,13 @@ export const AppTheme = {
       shadowOpacity: 0.08,
       shadowRadius: 12,
       elevation: 2,
+    },
+    elevated: {
+      shadowColor: '#1F2430',
+      shadowOffset: { width: 0, height: 10 },
+      shadowOpacity: 0.12,
+      shadowRadius: 18,
+      elevation: 5,
     },
     footer: {
       shadowColor: '#1F2430',
