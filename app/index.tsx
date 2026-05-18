@@ -1,5 +1,6 @@
 import { Link } from 'expo-router';
-import { Pressable, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useDecisions } from '@/contexts/decision-context';
 
@@ -16,10 +17,15 @@ const formatDateTime = (value: string) => {
 
 export default function HomeScreen() {
   const { decisions } = useDecisions();
+  const insets = useSafeAreaInsets();
+  const footerBottomPadding = Math.max(insets.bottom + 12, 28);
 
   return (
-    <SafeAreaView style={styles.screen}>
-      <ScrollView contentContainerStyle={styles.content}>
+    <View style={styles.screen}>
+      <ScrollView
+        alwaysBounceVertical={false}
+        contentContainerStyle={styles.content}
+        style={styles.contentArea}>
         <View style={styles.header}>
           <Text style={styles.title}>Entscheidungsfilter</Text>
           <Text style={styles.subtitle}>
@@ -49,7 +55,7 @@ export default function HomeScreen() {
         )}
       </ScrollView>
 
-      <View style={styles.actionBar}>
+      <View style={[styles.actionBar, { paddingBottom: footerBottomPadding }]}>
         <Link href="/create-decision" asChild>
           <Pressable
             accessibilityRole="button"
@@ -58,7 +64,7 @@ export default function HomeScreen() {
           </Pressable>
         </Link>
       </View>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -66,6 +72,9 @@ const styles = StyleSheet.create({
   screen: {
     flex: 1,
     backgroundColor: '#F7F8FA',
+  },
+  contentArea: {
+    flex: 1,
   },
   content: {
     gap: 32,
@@ -131,7 +140,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#F7F8FA',
     borderTopColor: '#E6EBF1',
     borderTopWidth: 1,
-    paddingBottom: 20,
     paddingHorizontal: 24,
     paddingTop: 16,
   },
