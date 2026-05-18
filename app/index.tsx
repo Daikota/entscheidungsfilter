@@ -40,16 +40,29 @@ export default function HomeScreen() {
         ) : (
           <View style={styles.decisionList}>
             {decisions.map((decision) => (
-              <View key={decision.id} style={styles.decisionCard}>
-                <Text style={styles.decisionTitle}>{decision.title}</Text>
-                <View style={styles.decisionMeta}>
-                  <Text style={styles.metaText}>Optionen: 0</Text>
-                  <Text style={styles.metaText}>Erstellt: {formatDateTime(decision.createdAt)}</Text>
-                  <Text style={styles.metaText}>
-                    Zuletzt bearbeitet: {formatDateTime(decision.updatedAt)}
-                  </Text>
-                </View>
-              </View>
+              <Link
+                key={decision.id}
+                href={{ pathname: '/decision/[id]', params: { id: decision.id } }}
+                asChild>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={`Entscheidung ${decision.title} öffnen`}
+                  style={({ pressed }) => [
+                    styles.decisionCard,
+                    pressed && styles.decisionCardPressed,
+                  ]}>
+                  <Text style={styles.decisionTitle}>{decision.title}</Text>
+                  <View style={styles.decisionMeta}>
+                    <Text style={styles.metaText}>Optionen: 0</Text>
+                    <Text style={styles.metaText}>
+                      Erstellt: {formatDateTime(decision.createdAt)}
+                    </Text>
+                    <Text style={styles.metaText}>
+                      Zuletzt bearbeitet: {formatDateTime(decision.updatedAt)}
+                    </Text>
+                  </View>
+                </Pressable>
+              </Link>
             ))}
           </View>
         )}
@@ -122,6 +135,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     gap: 12,
     padding: 16,
+  },
+  decisionCardPressed: {
+    backgroundColor: '#EEF4FF',
   },
   decisionTitle: {
     color: '#172033',

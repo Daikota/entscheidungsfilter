@@ -25,6 +25,12 @@ export default function RootLayout() {
                 title: 'Neue Entscheidung',
               }}
             />
+            <Stack.Screen
+              name="decision/[id]"
+              options={{
+                title: 'Entscheidung',
+              }}
+            />
           </Stack>
           <StatusBar style="dark" />
         </DecisionProvider>
