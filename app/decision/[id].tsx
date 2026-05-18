@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { AppTheme } from '@/constants/theme';
 import { useDecisions } from '@/contexts/decision-context';
 import { CriterionWeight } from '@/types/decision';
 
@@ -154,7 +155,7 @@ export default function DecisionDetailScreen() {
                 accessibilityLabel="Name der Option"
                 onChangeText={setOptionName}
                 placeholder="Name der Option"
-                placeholderTextColor="#7B8794"
+                placeholderTextColor={AppTheme.colors.textMuted}
                 style={[styles.input, optionError.length > 0 && styles.inputError]}
                 value={optionName}
               />
@@ -163,7 +164,7 @@ export default function DecisionDetailScreen() {
                 multiline
                 onChangeText={setOptionNote}
                 placeholder="Notiz optional"
-                placeholderTextColor="#7B8794"
+                placeholderTextColor={AppTheme.colors.textMuted}
                 style={[styles.input, styles.textArea]}
                 textAlignVertical="top"
                 value={optionNote}
@@ -234,7 +235,7 @@ export default function DecisionDetailScreen() {
                 accessibilityLabel="Name des Kriteriums"
                 onChangeText={setCriterionName}
                 placeholder="Name des Kriteriums"
-                placeholderTextColor="#7B8794"
+                placeholderTextColor={AppTheme.colors.textMuted}
                 style={[styles.input, criterionError.length > 0 && styles.inputError]}
                 value={criterionName}
               />
@@ -323,23 +324,23 @@ export default function DecisionDetailScreen() {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: '#F7F8FA',
+    backgroundColor: AppTheme.colors.surface,
   },
   content: {
     gap: 24,
-    paddingHorizontal: 24,
+    paddingHorizontal: AppTheme.spacing.screenX,
     paddingTop: 32,
   },
   header: {
     gap: 12,
   },
   title: {
-    color: '#172033',
+    color: AppTheme.colors.text,
     fontSize: 30,
     fontWeight: '700',
   },
   description: {
-    color: '#4D5A6D',
+    color: AppTheme.colors.textSecondary,
     fontSize: 17,
     lineHeight: 24,
   },
@@ -353,46 +354,46 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   sectionTitle: {
-    color: '#172033',
+    color: AppTheme.colors.text,
     flex: 1,
     fontSize: 22,
     fontWeight: '700',
   },
   formCard: {
-    backgroundColor: '#FFFFFF',
-    borderColor: '#DDE3EA',
-    borderRadius: 8,
+    backgroundColor: AppTheme.colors.surfaceRaised,
+    borderColor: AppTheme.colors.border,
+    borderRadius: AppTheme.radius.sm,
     borderWidth: 1,
     gap: 12,
     padding: 16,
   },
   input: {
-    backgroundColor: '#FFFFFF',
-    borderColor: '#DDE3EA',
-    borderRadius: 8,
+    backgroundColor: AppTheme.colors.surfaceRaised,
+    borderColor: AppTheme.colors.border,
+    borderRadius: AppTheme.radius.sm,
     borderWidth: 1,
-    color: '#172033',
+    color: AppTheme.colors.text,
     fontSize: 16,
     minHeight: 52,
     paddingHorizontal: 14,
     paddingVertical: 12,
   },
   inputError: {
-    borderColor: '#DC2626',
+    borderColor: AppTheme.colors.danger,
   },
   textArea: {
     minHeight: 96,
   },
   errorText: {
-    color: '#B91C1C',
+    color: AppTheme.colors.danger,
     fontSize: 14,
     lineHeight: 20,
   },
   emptyState: {
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderColor: '#DDE3EA',
-    borderRadius: 8,
+    backgroundColor: AppTheme.colors.surfaceRaised,
+    borderColor: AppTheme.colors.border,
+    borderRadius: AppTheme.radius.sm,
     borderWidth: 1,
     gap: 8,
     justifyContent: 'center',
@@ -400,13 +401,13 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   emptyTitle: {
-    color: '#2D3748',
+    color: AppTheme.colors.textStrong,
     fontSize: 18,
     fontWeight: '700',
     textAlign: 'center',
   },
   emptyText: {
-    color: '#4D5A6D',
+    color: AppTheme.colors.textSecondary,
     fontSize: 15,
     lineHeight: 21,
     textAlign: 'center',
@@ -416,9 +417,9 @@ const styles = StyleSheet.create({
   },
   itemCard: {
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderColor: '#DDE3EA',
-    borderRadius: 8,
+    backgroundColor: AppTheme.colors.surfaceRaised,
+    borderColor: AppTheme.colors.border,
+    borderRadius: AppTheme.radius.sm,
     borderWidth: 1,
     flexDirection: 'row',
     gap: 12,
@@ -429,67 +430,67 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   itemTitle: {
-    color: '#172033',
+    color: AppTheme.colors.text,
     fontSize: 17,
     fontWeight: '700',
   },
   itemText: {
-    color: '#4D5A6D',
+    color: AppTheme.colors.textSecondary,
     fontSize: 14,
     lineHeight: 20,
   },
   primaryButton: {
     alignItems: 'center',
-    backgroundColor: '#2563EB',
-    borderRadius: 8,
+    backgroundColor: AppTheme.colors.primary,
+    borderRadius: AppTheme.radius.sm,
     justifyContent: 'center',
-    minHeight: 56,
+    minHeight: AppTheme.touch.primary,
     paddingHorizontal: 20,
     paddingVertical: 14,
   },
   primaryButtonPressed: {
-    backgroundColor: '#1D4ED8',
+    backgroundColor: AppTheme.colors.primaryPressed,
   },
   primaryButtonText: {
-    color: '#FFFFFF',
+    color: AppTheme.colors.onPrimary,
     fontSize: 17,
     fontWeight: '700',
     textAlign: 'center',
   },
   secondaryButton: {
     alignItems: 'center',
-    backgroundColor: '#EAF1FF',
-    borderColor: '#BCD0FF',
-    borderRadius: 8,
+    backgroundColor: AppTheme.colors.primarySoft,
+    borderColor: AppTheme.colors.primaryBorder,
+    borderRadius: AppTheme.radius.sm,
     borderWidth: 1,
     justifyContent: 'center',
-    minHeight: 44,
+    minHeight: AppTheme.touch.min,
     paddingHorizontal: 12,
   },
   secondaryButtonPressed: {
-    backgroundColor: '#DCE8FF',
+    backgroundColor: AppTheme.colors.primarySoftPressed,
   },
   secondaryButtonText: {
-    color: '#1D4ED8',
+    color: AppTheme.colors.info,
     fontSize: 14,
     fontWeight: '700',
     textAlign: 'center',
   },
   deleteButton: {
     alignItems: 'center',
-    backgroundColor: '#FFF1F2',
-    borderColor: '#FECDD3',
-    borderRadius: 8,
+    backgroundColor: AppTheme.colors.dangerSoft,
+    borderColor: AppTheme.colors.dangerBorder,
+    borderRadius: AppTheme.radius.sm,
     borderWidth: 1,
     justifyContent: 'center',
-    minHeight: 44,
+    minHeight: AppTheme.touch.min,
     paddingHorizontal: 12,
   },
   deleteButtonPressed: {
-    backgroundColor: '#FFE4E6',
+    backgroundColor: AppTheme.colors.dangerSoftPressed,
   },
   deleteButtonText: {
-    color: '#BE123C',
+    color: AppTheme.colors.dangerStrong,
     fontSize: 14,
     fontWeight: '700',
   },
@@ -497,7 +498,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   weightLabel: {
-    color: '#2D3748',
+    color: AppTheme.colors.textStrong,
     fontSize: 15,
     fontWeight: '700',
   },
@@ -507,47 +508,47 @@ const styles = StyleSheet.create({
   },
   weightButton: {
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderColor: '#DDE3EA',
-    borderRadius: 8,
+    backgroundColor: AppTheme.colors.surfaceRaised,
+    borderColor: AppTheme.colors.border,
+    borderRadius: AppTheme.radius.sm,
     borderWidth: 1,
     flex: 1,
     justifyContent: 'center',
-    minHeight: 44,
+    minHeight: AppTheme.touch.min,
   },
   weightButtonSelected: {
-    backgroundColor: '#2563EB',
-    borderColor: '#2563EB',
+    backgroundColor: AppTheme.colors.primary,
+    borderColor: AppTheme.colors.primary,
   },
   weightButtonText: {
-    color: '#2D3748',
+    color: AppTheme.colors.textStrong,
     fontSize: 16,
     fontWeight: '700',
   },
   weightButtonTextSelected: {
-    color: '#FFFFFF',
+    color: AppTheme.colors.onPrimary,
   },
   actionBar: {
-    backgroundColor: '#F7F8FA',
-    borderTopColor: '#E6EBF1',
+    backgroundColor: AppTheme.colors.surface,
+    borderTopColor: AppTheme.colors.borderSoft,
     borderTopWidth: 1,
-    paddingHorizontal: 24,
+    paddingHorizontal: AppTheme.spacing.screenX,
     paddingTop: 16,
   },
   notFoundContent: {
     flex: 1,
     gap: 16,
     justifyContent: 'center',
-    paddingHorizontal: 24,
+    paddingHorizontal: AppTheme.spacing.screenX,
   },
   notFoundTitle: {
-    color: '#172033',
+    color: AppTheme.colors.text,
     fontSize: 24,
     fontWeight: '700',
     textAlign: 'center',
   },
   notFoundText: {
-    color: '#4D5A6D',
+    color: AppTheme.colors.textSecondary,
     fontSize: 16,
     lineHeight: 23,
     textAlign: 'center',

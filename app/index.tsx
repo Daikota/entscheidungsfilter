@@ -2,6 +2,7 @@ import { Link } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { AppTheme } from '@/constants/theme';
 import { useDecisions } from '@/contexts/decision-context';
 
 const formatDateTime = (value: string) => {
@@ -92,42 +93,42 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: '#F7F8FA',
+    backgroundColor: AppTheme.colors.surface,
   },
   contentArea: {
     flex: 1,
   },
   content: {
-    gap: 32,
+    gap: 28,
     paddingBottom: 24,
-    paddingHorizontal: 24,
+    paddingHorizontal: AppTheme.spacing.screenX,
     paddingTop: 56,
   },
   header: {
     gap: 12,
   },
   title: {
-    color: '#172033',
+    color: AppTheme.colors.text,
     fontSize: 32,
     fontWeight: '700',
   },
   subtitle: {
-    color: '#4D5A6D',
+    color: AppTheme.colors.textSecondary,
     fontSize: 17,
     lineHeight: 24,
   },
   emptyState: {
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderColor: '#DDE3EA',
-    borderRadius: 8,
+    backgroundColor: AppTheme.colors.surfaceRaised,
+    borderColor: AppTheme.colors.border,
+    borderRadius: AppTheme.radius.sm,
     borderWidth: 1,
     justifyContent: 'center',
     minHeight: 260,
     padding: 24,
   },
   emptyTitle: {
-    color: '#2D3748',
+    color: AppTheme.colors.textStrong,
     fontSize: 20,
     fontWeight: '600',
     textAlign: 'center',
@@ -137,18 +138,19 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
   },
   decisionCard: {
-    backgroundColor: '#FFFFFF',
-    borderColor: '#DDE3EA',
-    borderRadius: 8,
+    backgroundColor: AppTheme.colors.surfaceRaised,
+    borderColor: AppTheme.colors.border,
+    borderRadius: AppTheme.radius.sm,
     borderWidth: 1,
     gap: 12,
+    minHeight: 96,
     padding: 16,
   },
   decisionCardPressed: {
-    backgroundColor: '#EEF4FF',
+    backgroundColor: AppTheme.colors.surfacePressed,
   },
   decisionTitle: {
-    color: '#172033',
+    color: AppTheme.colors.text,
     fontSize: 19,
     fontWeight: '700',
   },
@@ -156,31 +158,31 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   metaText: {
-    color: '#4D5A6D',
+    color: AppTheme.colors.textSecondary,
     fontSize: 14,
     lineHeight: 20,
   },
   actionBar: {
-    backgroundColor: '#F7F8FA',
-    borderTopColor: '#E6EBF1',
+    backgroundColor: AppTheme.colors.surface,
+    borderTopColor: AppTheme.colors.borderSoft,
     borderTopWidth: 1,
-    paddingHorizontal: 24,
+    paddingHorizontal: AppTheme.spacing.screenX,
     paddingTop: 16,
   },
   button: {
     alignItems: 'center',
-    backgroundColor: '#2563EB',
-    borderRadius: 8,
+    backgroundColor: AppTheme.colors.primary,
+    borderRadius: AppTheme.radius.sm,
     minHeight: 60,
     justifyContent: 'center',
     paddingHorizontal: 24,
     width: '100%',
   },
   buttonPressed: {
-    backgroundColor: '#1D4ED8',
+    backgroundColor: AppTheme.colors.primaryPressed,
   },
   buttonText: {
-    color: '#FFFFFF',
+    color: AppTheme.colors.onPrimary,
     fontSize: 18,
     fontWeight: '700',
   },
