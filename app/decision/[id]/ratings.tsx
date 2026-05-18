@@ -25,6 +25,7 @@ export default function DecisionRatingsScreen() {
   const insets = useSafeAreaInsets();
   const decision = decisions.find((currentDecision) => currentDecision.id === id);
   const [screenError, setScreenError] = useState('');
+  const [expandedResultIds, setExpandedResultIds] = useState<string[]>([]);
 
   if (!isDatabaseReady) {
     return (
@@ -68,6 +69,14 @@ export default function DecisionRatingsScreen() {
   const maxScore = results.length > 0 ? results[0].totalScore : 0;
   const ratingProgress = getDecisionRatingProgress(decision);
   const progressWidth = hasMissingSetup ? 0 : Math.max(ratingProgress.percentage, 4);
+
+  const toggleResultDetails = (optionId: string) => {
+    setExpandedResultIds((currentIds) =>
+      currentIds.includes(optionId)
+        ? currentIds.filter((currentId) => currentId !== optionId)
+        : [...currentIds, optionId]
+    );
+  };
 
   return (
     <ScrollView
@@ -246,6 +255,7 @@ export default function DecisionRatingsScreen() {
             <View style={styles.resultList}>
               {results.map((result) => {
                 const widthPercent = maxScore > 0 ? Math.max((result.totalScore / maxScore) * 100, 8) : 8;
+                const isExpanded = expandedResultIds.includes(result.optionId);
 
                 return (
                   <AppCard
@@ -272,6 +282,52 @@ export default function DecisionRatingsScreen() {
                     <View style={styles.scoreTrack}>
                       <View style={[styles.scoreFill, { width: `${widthPercent}%` }]} />
                     </View>
+                    <Pressable
+                      accessibilityLabel={`${result.optionName} Punkteaufschlüsselung ${isExpanded ? 'schließen' : 'öffnen'}`}
+                      accessibilityRole="button"
+                      onPress={() => toggleResultDetails(result.optionId)}
+                      style={({ pressed }) => [
+                        styles.breakdownToggle,
+                        pressed && styles.breakdownTogglePressed,
+                      ]}>
+                      <Ionicons
+                        color={theme.colors.textSecondary}
+                        name={isExpanded ? 'chevron-up' : 'chevron-down'}
+                        size={18}
+                      />
+                      <Text style={styles.breakdownToggleText}>
+                        {isExpanded ? 'Details schließen' : 'Warum?'}
+                      </Text>
+                    </Pressable>
+                    {isExpanded ? (
+                      <View style={styles.breakdownList}>
+                        {result.breakdown.map((item) => (
+                          <View key={item.criterionId} style={styles.breakdownRow}>
+                            <View style={styles.breakdownMain}>
+                              <Text numberOfLines={2} style={styles.breakdownCriterion}>
+                                {item.criterionName}
+                              </Text>
+                              <Text style={styles.breakdownFormula}>
+                                {item.isMissing ? 'Fehlt' : `${item.score} x ${item.weight}`}
+                              </Text>
+                            </View>
+                            <View
+                              style={[
+                                styles.breakdownScore,
+                                item.isMissing && styles.breakdownScoreMissing,
+                              ]}>
+                              <Text
+                                style={[
+                                  styles.breakdownScoreText,
+                                  item.isMissing && styles.breakdownScoreTextMissing,
+                                ]}>
+                                {item.weightedScore}
+                              </Text>
+                            </View>
+                          </View>
+                        ))}
+                      </View>
+                    ) : null}
                   </AppCard>
                 );
               })}
@@ -603,6 +659,75 @@ const createStyles = (theme: AppThemeValues) => StyleSheet.create({
     backgroundColor: theme.colors.primary,
     borderRadius: theme.radius.pill,
     height: '100%',
+  },
+  breakdownToggle: {
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    backgroundColor: theme.colors.surfaceTint,
+    borderColor: theme.colors.borderSoft,
+    borderRadius: theme.radius.pill,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: 6,
+    minHeight: 38,
+    paddingHorizontal: 12,
+  },
+  breakdownTogglePressed: {
+    backgroundColor: theme.colors.surfacePressed,
+  },
+  breakdownToggleText: {
+    color: theme.colors.textSecondary,
+    fontSize: 13,
+    fontWeight: '900',
+  },
+  breakdownList: {
+    gap: 8,
+  },
+  breakdownRow: {
+    alignItems: 'center',
+    backgroundColor: theme.colors.surfaceTint,
+    borderColor: theme.colors.borderSoft,
+    borderRadius: theme.radius.lg,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: 10,
+    padding: 10,
+  },
+  breakdownMain: {
+    flex: 1,
+    gap: 3,
+  },
+  breakdownCriterion: {
+    color: theme.colors.textStrong,
+    fontSize: 14,
+    fontWeight: '900',
+  },
+  breakdownFormula: {
+    color: theme.colors.textSecondary,
+    fontSize: 12,
+    fontWeight: '800',
+  },
+  breakdownScore: {
+    alignItems: 'center',
+    backgroundColor: theme.colors.primary,
+    borderRadius: theme.radius.pill,
+    minHeight: 34,
+    justifyContent: 'center',
+    minWidth: 42,
+    paddingHorizontal: 10,
+  },
+  breakdownScoreMissing: {
+    backgroundColor: theme.colors.primarySoft,
+    borderColor: theme.colors.primaryBorder,
+    borderWidth: 1,
+  },
+  breakdownScoreText: {
+    color: theme.colors.onPrimary,
+    fontSize: 14,
+    fontWeight: '900',
+  },
+  breakdownScoreTextMissing: {
+    color: theme.colors.textStrong,
   },
   errorBox: {
     backgroundColor: theme.colors.dangerSoft,
