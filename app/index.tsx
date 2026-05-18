@@ -53,7 +53,7 @@ export default function HomeScreen() {
                   ]}>
                   <Text style={styles.decisionTitle}>{decision.title}</Text>
                   <View style={styles.decisionMeta}>
-                    <Text style={styles.metaText}>Optionen: 0</Text>
+                    <Text style={styles.metaText}>Optionen: {decision.options.length}</Text>
                     <Text style={styles.metaText}>
                       Erstellt: {formatDateTime(decision.createdAt)}
                     </Text>
