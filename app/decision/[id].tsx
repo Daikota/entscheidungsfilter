@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Link, useLocalSearchParams } from 'expo-router';
+import { Link, useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -14,6 +14,7 @@ const criterionWeights: CriterionWeight[] = [1, 2, 3];
 export default function DecisionDetailScreen() {
   const theme = useAppTheme();
   const styles = createStyles(theme);
+  const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
   const {
     decisions,
@@ -21,6 +22,7 @@ export default function DecisionDetailScreen() {
     isDatabaseReady,
     addOption,
     updateDecision,
+    deleteDecision,
     updateOption,
     deleteOption,
     addCriterion,
@@ -34,6 +36,9 @@ export default function DecisionDetailScreen() {
   const [editDecisionTitle, setEditDecisionTitle] = useState('');
   const [editDecisionDescription, setEditDecisionDescription] = useState('');
   const [decisionError, setDecisionError] = useState('');
+  const [isDeleteConfirmVisible, setIsDeleteConfirmVisible] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
   const [isOptionFormVisible, setIsOptionFormVisible] = useState(false);
   const [optionName, setOptionName] = useState('');
   const [optionNote, setOptionNote] = useState('');
@@ -140,6 +145,20 @@ export default function DecisionDetailScreen() {
     } catch (error) {
       console.error('Failed to update decision', error);
       setDecisionError('Die Entscheidung konnte nicht gespeichert werden.');
+    }
+  };
+
+  const handleDeleteDecision = async () => {
+    setIsDeleting(true);
+    setDeleteError('');
+
+    try {
+      await deleteDecision(decision.id);
+      router.replace('/');
+    } catch (error) {
+      console.error('Failed to delete decision', error);
+      setDeleteError('Konnte nicht gelöscht werden.');
+      setIsDeleting(false);
     }
   };
 
@@ -582,6 +601,57 @@ export default function DecisionDetailScreen() {
             </View>
           )}
         </View>
+
+        <View style={styles.section}>
+          <SectionHeader eyebrow="Verwalten" title="Entfernen" />
+          {isDeleteConfirmVisible ? (
+            <AppCard style={styles.deletePanel}>
+              <View style={styles.deleteHeader}>
+                <View style={styles.deleteIcon}>
+                  <Ionicons color={theme.colors.dangerStrong} name="trash-outline" size={20} />
+                </View>
+                <View style={styles.deleteCopy}>
+                  <Text style={styles.deleteTitle}>Entscheidung löschen?</Text>
+                  <Text style={styles.deleteText}>Alle Optionen, Kriterien und Bewertungen werden entfernt.</Text>
+                </View>
+              </View>
+              {deleteError.length > 0 ? (
+                <Text accessibilityRole="alert" style={styles.errorText}>
+                  {deleteError}
+                </Text>
+              ) : null}
+              <View style={styles.editActions}>
+                <AppButton
+                  disabled={isDeleting}
+                  icon="close"
+                  onPress={() => {
+                    setIsDeleteConfirmVisible(false);
+                    setDeleteError('');
+                  }}
+                  title="Abbrechen"
+                  variant="ghost"
+                />
+                <AppButton
+                  disabled={isDeleting}
+                  icon="trash-outline"
+                  onPress={handleDeleteDecision}
+                  title={isDeleting ? 'Löscht...' : 'Löschen'}
+                  variant="danger"
+                />
+              </View>
+            </AppCard>
+          ) : (
+            <AppButton
+              icon="trash-outline"
+              onPress={() => {
+                setIsDeleteConfirmVisible(true);
+                setDeleteError('');
+              }}
+              title="Entscheidung löschen"
+              variant="danger"
+            />
+          )}
+        </View>
       </ScrollView>
 
       <View style={[styles.actionBar, { paddingBottom: Math.max(insets.bottom + 14, 30) }]}>
@@ -695,6 +765,38 @@ const createStyles = (theme: AppThemeValues) => StyleSheet.create({
   itemActions: {
     flexDirection: 'row',
     gap: 8,
+  },
+  deletePanel: {
+    backgroundColor: theme.colors.dangerSoft,
+    borderColor: theme.colors.dangerBorder,
+    gap: 12,
+  },
+  deleteHeader: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 12,
+  },
+  deleteIcon: {
+    alignItems: 'center',
+    backgroundColor: theme.colors.dangerSoftPressed,
+    borderRadius: theme.radius.pill,
+    height: 42,
+    justifyContent: 'center',
+    width: 42,
+  },
+  deleteCopy: {
+    flex: 1,
+    gap: 3,
+  },
+  deleteTitle: {
+    color: theme.colors.dangerStrong,
+    fontSize: 16,
+    fontWeight: '900',
+  },
+  deleteText: {
+    color: theme.colors.dangerStrong,
+    fontSize: 13,
+    lineHeight: 18,
   },
   itemTitle: {
     color: theme.colors.textStrong,

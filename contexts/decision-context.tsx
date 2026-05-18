@@ -2,6 +2,7 @@ import { createContext, PropsWithChildren, useCallback, useContext, useEffect, u
 
 import {
   deleteCriterionFromDatabase,
+  deleteDecisionFromDatabase,
   deleteOptionFromDatabase,
   insertCriterion,
   insertDecision,
@@ -34,6 +35,7 @@ type DecisionContextValue = {
   addDecision: (input: CreateDecisionInput) => Promise<Decision>;
   addDecisionWithDetails: (input: CreateDecisionWithDetailsInput) => Promise<Decision>;
   updateDecision: (input: UpdateDecisionInput) => Promise<void>;
+  deleteDecision: (decisionId: string) => Promise<void>;
   addOption: (input: CreateDecisionOptionInput) => Promise<DecisionOption>;
   updateOption: (input: UpdateDecisionOptionInput) => Promise<void>;
   deleteOption: (decisionId: string, optionId: string) => Promise<void>;
@@ -170,6 +172,13 @@ export function DecisionProvider({ children }: PropsWithChildren) {
             }
           : decision
       )
+    );
+  }, []);
+
+  const deleteDecision = useCallback(async (decisionId: string) => {
+    await deleteDecisionFromDatabase(decisionId);
+    setDecisions((currentDecisions) =>
+      currentDecisions.filter((decision) => decision.id !== decisionId)
     );
   }, []);
 
@@ -342,6 +351,7 @@ export function DecisionProvider({ children }: PropsWithChildren) {
         addDecision,
         addDecisionWithDetails,
         updateDecision,
+        deleteDecision,
         addOption,
         updateOption,
         deleteOption,

@@ -195,6 +195,16 @@ export async function updateDecisionInDatabase(
   );
 }
 
+export async function deleteDecisionFromDatabase(decisionId: string) {
+  const db = await getDatabase();
+  await db.withExclusiveTransactionAsync(async (transaction) => {
+    await transaction.runAsync('DELETE FROM ratings WHERE decision_id = ?', decisionId);
+    await transaction.runAsync('DELETE FROM options WHERE decision_id = ?', decisionId);
+    await transaction.runAsync('DELETE FROM criteria WHERE decision_id = ?', decisionId);
+    await transaction.runAsync('DELETE FROM decisions WHERE id = ?', decisionId);
+  });
+}
+
 export async function updateOptionInDatabase(
   decisionId: string,
   optionId: string,
