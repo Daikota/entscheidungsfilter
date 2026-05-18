@@ -50,6 +50,21 @@ export type CreateDecisionInput = {
   description: string;
 };
 
+export type CreateDecisionOptionDraftInput = {
+  name: string;
+  note: string;
+};
+
+export type CreateDecisionCriterionDraftInput = {
+  name: string;
+  weight: CriterionWeight;
+};
+
+export type CreateDecisionWithDetailsInput = CreateDecisionInput & {
+  options: CreateDecisionOptionDraftInput[];
+  criteria: CreateDecisionCriterionDraftInput[];
+};
+
 export type CreateDecisionOptionInput = {
   decisionId: string;
   name: string;

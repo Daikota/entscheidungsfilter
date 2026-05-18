@@ -117,6 +117,44 @@ export async function insertDecision(decision: Decision) {
   );
 }
 
+export async function insertDecisionWithDetails(decision: Decision) {
+  const db = await getDatabase();
+  await db.withExclusiveTransactionAsync(async (transaction) => {
+    await transaction.runAsync(
+      'INSERT INTO decisions (id, title, description, created_at, updated_at) VALUES (?, ?, ?, ?, ?)',
+      decision.id,
+      decision.title,
+      decision.description,
+      decision.createdAt,
+      decision.updatedAt
+    );
+
+    for (const option of decision.options) {
+      await transaction.runAsync(
+        'INSERT INTO options (id, decision_id, name, note, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)',
+        option.id,
+        decision.id,
+        option.name,
+        option.note,
+        option.createdAt,
+        decision.updatedAt
+      );
+    }
+
+    for (const criterion of decision.criteria) {
+      await transaction.runAsync(
+        'INSERT INTO criteria (id, decision_id, name, weight, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)',
+        criterion.id,
+        decision.id,
+        criterion.name,
+        criterion.weight,
+        criterion.createdAt,
+        decision.updatedAt
+      );
+    }
+  });
+}
+
 export async function insertOption(decisionId: string, option: DecisionOption, updatedAt: string) {
   const db = await getDatabase();
   await db.withExclusiveTransactionAsync(async (transaction) => {

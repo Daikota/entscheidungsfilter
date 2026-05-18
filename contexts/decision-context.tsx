@@ -5,6 +5,7 @@ import {
   deleteOptionFromDatabase,
   insertCriterion,
   insertDecision,
+  insertDecisionWithDetails,
   insertOption,
   loadDecisionsFromDatabase,
   upsertRating,
@@ -13,6 +14,7 @@ import {
   CreateDecisionCriterionInput,
   CreateDecisionInput,
   CreateDecisionOptionInput,
+  CreateDecisionWithDetailsInput,
   Decision,
   DecisionCriterion,
   DecisionOption,
@@ -24,6 +26,7 @@ type DecisionContextValue = {
   databaseError: string;
   isDatabaseReady: boolean;
   addDecision: (input: CreateDecisionInput) => Promise<Decision>;
+  addDecisionWithDetails: (input: CreateDecisionWithDetailsInput) => Promise<Decision>;
   addOption: (input: CreateDecisionOptionInput) => Promise<DecisionOption>;
   deleteOption: (decisionId: string, optionId: string) => Promise<void>;
   addCriterion: (input: CreateDecisionCriterionInput) => Promise<DecisionCriterion>;
@@ -86,6 +89,34 @@ export function DecisionProvider({ children }: PropsWithChildren) {
     };
 
     await insertDecision(decision);
+    setDecisions((currentDecisions) => [decision, ...currentDecisions]);
+    return decision;
+  }, []);
+
+  const addDecisionWithDetails = useCallback(async (input: CreateDecisionWithDetailsInput) => {
+    const now = new Date().toISOString();
+    const decision: Decision = {
+      id: createDecisionId(),
+      title: input.title,
+      description: input.description,
+      options: input.options.map((option) => ({
+        id: createChildId('option'),
+        name: option.name,
+        note: option.note,
+        createdAt: now,
+      })),
+      criteria: input.criteria.map((criterion) => ({
+        id: createChildId('criterion'),
+        name: criterion.name,
+        weight: criterion.weight,
+        createdAt: now,
+      })),
+      ratings: [],
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    await insertDecisionWithDetails(decision);
     setDecisions((currentDecisions) => [decision, ...currentDecisions]);
     return decision;
   }, []);
@@ -226,6 +257,7 @@ export function DecisionProvider({ children }: PropsWithChildren) {
         databaseError,
         isDatabaseReady,
         addDecision,
+        addDecisionWithDetails,
         addOption,
         deleteOption,
         addCriterion,
