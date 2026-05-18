@@ -1,7 +1,22 @@
 import { Link } from 'expo-router';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+
+import { useDecisions } from '@/contexts/decision-context';
+
+const formatDateTime = (value: string) => {
+  const date = new Date(value);
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const year = date.getFullYear();
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+
+  return `${day}.${month}.${year}, ${hours}:${minutes}`;
+};
 
 export default function HomeScreen() {
+  const { decisions } = useDecisions();
+
   return (
     <View style={styles.screen}>
       <View style={styles.content}>
@@ -12,9 +27,26 @@ export default function HomeScreen() {
           </Text>
         </View>
 
-        <View style={styles.emptyState}>
-          <Text style={styles.emptyTitle}>Noch keine Entscheidungen</Text>
-        </View>
+        {decisions.length === 0 ? (
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyTitle}>Noch keine Entscheidungen</Text>
+          </View>
+        ) : (
+          <ScrollView contentContainerStyle={styles.decisionList}>
+            {decisions.map((decision) => (
+              <View key={decision.id} style={styles.decisionCard}>
+                <Text style={styles.decisionTitle}>{decision.title}</Text>
+                <View style={styles.decisionMeta}>
+                  <Text style={styles.metaText}>Optionen: 0</Text>
+                  <Text style={styles.metaText}>Erstellt: {formatDateTime(decision.createdAt)}</Text>
+                  <Text style={styles.metaText}>
+                    Zuletzt bearbeitet: {formatDateTime(decision.updatedAt)}
+                  </Text>
+                </View>
+              </View>
+            ))}
+          </ScrollView>
+        )}
       </View>
 
       <Link href="/create-decision" asChild>
@@ -68,6 +100,31 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '600',
     textAlign: 'center',
+  },
+  decisionList: {
+    gap: 12,
+    paddingBottom: 8,
+  },
+  decisionCard: {
+    backgroundColor: '#FFFFFF',
+    borderColor: '#DDE3EA',
+    borderRadius: 8,
+    borderWidth: 1,
+    gap: 12,
+    padding: 16,
+  },
+  decisionTitle: {
+    color: '#172033',
+    fontSize: 19,
+    fontWeight: '700',
+  },
+  decisionMeta: {
+    gap: 6,
+  },
+  metaText: {
+    color: '#4D5A6D',
+    fontSize: 14,
+    lineHeight: 20,
   },
   button: {
     alignItems: 'center',

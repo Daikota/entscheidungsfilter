@@ -2,15 +2,11 @@ import { useState } from 'react';
 import { useRouter } from 'expo-router';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
-type LocalDecision = {
-  title: string;
-  description: string;
-  createdAt: string;
-  updatedAt: string;
-};
+import { useDecisions } from '@/contexts/decision-context';
 
 export default function CreateDecisionScreen() {
   const router = useRouter();
+  const { addDecision } = useDecisions();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [feedbackMessage, setFeedbackMessage] = useState('');
@@ -25,17 +21,15 @@ export default function CreateDecisionScreen() {
       return;
     }
 
-    const now = new Date().toISOString();
-    const decision: LocalDecision = {
-      title: trimmedTitle,
-      description: trimmedDescription,
-      createdAt: now,
-      updatedAt: now,
-    };
-
     setIsSaving(true);
     setFeedbackMessage('');
-    console.log('Created local decision draft', decision);
+
+    const decision = addDecision({
+      title: trimmedTitle,
+      description: trimmedDescription,
+    });
+
+    console.log('Created local decision', decision);
 
     setTimeout(() => {
       router.replace('/');
