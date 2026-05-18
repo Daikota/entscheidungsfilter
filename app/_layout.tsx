@@ -31,6 +31,12 @@ export default function RootLayout() {
                 title: 'Entscheidung',
               }}
             />
+            <Stack.Screen
+              name="decision/[id]/ratings"
+              options={{
+                title: 'Bewertung',
+              }}
+            />
           </Stack>
           <StatusBar style="dark" />
         </DecisionProvider>

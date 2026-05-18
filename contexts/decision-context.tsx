@@ -7,6 +7,7 @@ import {
   Decision,
   DecisionCriterion,
   DecisionOption,
+  SetDecisionRatingInput,
 } from '@/types/decision';
 
 type DecisionContextValue = {
@@ -16,6 +17,7 @@ type DecisionContextValue = {
   deleteOption: (decisionId: string, optionId: string) => void;
   addCriterion: (input: CreateDecisionCriterionInput) => DecisionCriterion;
   deleteCriterion: (decisionId: string, criterionId: string) => void;
+  setRating: (input: SetDecisionRatingInput) => void;
 };
 
 const DecisionContext = createContext<DecisionContextValue | null>(null);
@@ -34,6 +36,7 @@ export function DecisionProvider({ children }: PropsWithChildren) {
       description: input.description,
       options: [],
       criteria: [],
+      ratings: [],
       createdAt: now,
       updatedAt: now,
     };
@@ -75,6 +78,7 @@ export function DecisionProvider({ children }: PropsWithChildren) {
           ? {
               ...decision,
               options: decision.options.filter((option) => option.id !== optionId),
+              ratings: decision.ratings.filter((rating) => rating.optionId !== optionId),
               updatedAt: now,
             }
           : decision
@@ -115,6 +119,7 @@ export function DecisionProvider({ children }: PropsWithChildren) {
           ? {
               ...decision,
               criteria: decision.criteria.filter((criterion) => criterion.id !== criterionId),
+              ratings: decision.ratings.filter((rating) => rating.criterionId !== criterionId),
               updatedAt: now,
             }
           : decision
@@ -122,9 +127,51 @@ export function DecisionProvider({ children }: PropsWithChildren) {
     );
   }, []);
 
+  const setRating = useCallback((input: SetDecisionRatingInput) => {
+    const now = new Date().toISOString();
+
+    setDecisions((currentDecisions) =>
+      currentDecisions.map((decision) => {
+        if (decision.id !== input.decisionId) {
+          return decision;
+        }
+
+        const existingRatingIndex = decision.ratings.findIndex(
+          (rating) =>
+            rating.optionId === input.optionId && rating.criterionId === input.criterionId
+        );
+        const nextRating = {
+          optionId: input.optionId,
+          criterionId: input.criterionId,
+          score: input.score,
+        };
+        const nextRatings =
+          existingRatingIndex === -1
+            ? [...decision.ratings, nextRating]
+            : decision.ratings.map((rating, index) =>
+                index === existingRatingIndex ? nextRating : rating
+              );
+
+        return {
+          ...decision,
+          ratings: nextRatings,
+          updatedAt: now,
+        };
+      })
+    );
+  }, []);
+
   return (
     <DecisionContext.Provider
-      value={{ decisions, addDecision, addOption, deleteOption, addCriterion, deleteCriterion }}>
+      value={{
+        decisions,
+        addDecision,
+        addOption,
+        deleteOption,
+        addCriterion,
+        deleteCriterion,
+        setRating,
+      }}>
       {children}
     </DecisionContext.Provider>
   );

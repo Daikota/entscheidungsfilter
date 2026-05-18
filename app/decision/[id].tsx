@@ -268,12 +268,13 @@ export default function DecisionDetailScreen() {
       </ScrollView>
 
       <View style={[styles.actionBar, { paddingBottom: Math.max(insets.bottom + 12, 28) }]}>
-        <Pressable
-          accessibilityRole="button"
-          onPress={() => undefined}
-          style={({ pressed }) => [styles.primaryButton, pressed && styles.primaryButtonPressed]}>
-          <Text style={styles.primaryButtonText}>Bewertung starten / Ergebnisse anzeigen</Text>
-        </Pressable>
+        <Link href={{ pathname: '/decision/[id]/ratings', params: { id: decision.id } }} asChild>
+          <Pressable
+            accessibilityRole="button"
+            style={({ pressed }) => [styles.primaryButton, pressed && styles.primaryButtonPressed]}>
+            <Text style={styles.primaryButtonText}>Bewertung starten / Ergebnisse anzeigen</Text>
+          </Pressable>
+        </Link>
       </View>
     </View>
   );
