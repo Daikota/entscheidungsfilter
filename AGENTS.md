@@ -143,3 +143,108 @@ These rules are mandatory for future UI work so the app can support a profession
 - For larger UI changes, check whether the structure remains Dark-Mode-ready.
 - Do not perform large theme refactors unless explicitly requested.
 - Keep theme improvements scoped to the current task unless the user asks for a broader redesign.
+
+## Premium Mobile Product Design Rules
+
+These rules are mandatory for all future UI and UX work so the app keeps its modern premium mobile design language.
+
+### 1. Product Design Quality
+
+- The app must feel like a modern premium mobile app.
+- Do not let new screens fall back to a generic admin panel, dashboard, or plain form style.
+- UI must remain high-quality, modern, calm, and consistent.
+- New features must visually fit the existing design language before they are considered complete.
+
+### 2. Less Text, More Visual Communication
+
+- Avoid unnecessary explanatory text in the UI.
+- Prefer clear icons when the meaning is obvious.
+- Keep labels, helper text, and descriptions short.
+- Screens must remain quickly scannable on small mobile displays.
+
+### 3. Modern Mobile Look
+
+- Preserve the modern productivity-app aesthetic.
+- Avoid boring default React Native layouts.
+- Do not create large rectangular blocks without visual hierarchy.
+- Use subtle depth, layering, and grouped surfaces to make screens feel intentional.
+
+### 4. Visual Hierarchy
+
+- Primary actions must always be visually clear and easy to find.
+- Secondary information must be quieter than primary content.
+- Danger actions must be visually restrained and should not compete with primary actions.
+- Layouts must actively guide the user's eye toward the current information and next useful step.
+
+### 5. Component Consistency
+
+- Buttons, cards, inputs, section headers, empty states, and list items must stay visually consistent.
+- Prefer reusable components for repeated UI patterns.
+- Do not introduce many slightly different variants of the same UI element.
+- Extend existing shared UI components before adding one-off screen-specific patterns when practical.
+
+### 6. Cards and Layouts
+
+- Cards must be compact but still feel polished and touch-friendly.
+- Avoid unnecessary empty space.
+- Show more useful content when possible without making the screen feel overloaded.
+- Keep repeated cards aligned, consistently spaced, and visually calm.
+
+### 7. Theme Quality
+
+- Preserve the existing theme and color language.
+- Dark Mode must feel intentionally designed, not merely dark.
+- Use color sparingly and purposefully.
+- Reserve the accent color for important interactions, focus, and meaningful emphasis.
+- Keep all new UI theme-aware and avoid scattered hardcoded colors.
+
+### 8. Typography
+
+- Preserve a clear modern typography hierarchy.
+- Headlines should carry stronger visual weight than secondary content.
+- Secondary information should be quieter and easier to scan.
+- Avoid long UI text that makes screens feel like documentation.
+
+### 9. UX Flow
+
+- Keep user flows short and direct.
+- Avoid unnecessary intermediate steps.
+- Prefer multi-entry workflows when users naturally need to add several items.
+- Important actions must stay easy to reach in the mobile thumb zone.
+
+### 10. Rating and Analysis UI
+
+- Rating screens must feel like a modern decision and comparison tool.
+- Avoid pure table, spreadsheet, or plain form layouts for scoring and results.
+- Results must be visually clear, ranked, and quickly understandable.
+- Winners, alternatives, scores, and relative strength should be communicated visually where practical.
+
+### 11. Animations and Interactions
+
+- Prefer subtle modern touch feedback and press states.
+- Avoid overloaded, playful, or distracting animation.
+- Interactions should feel fluid, restrained, and useful.
+- Critical feedback must not rely on animation alone.
+
+### 12. Quality Check Before UI Changes
+
+Before larger UI changes, Codex must check:
+
+- Whether the change weakens the existing premium look.
+- Whether the new UI is consistent with the existing design language.
+- Whether unnecessary text is being added.
+- Whether reusable components remain reusable.
+- Whether the change makes the app feel more modern or more generic.
+
+### 13. Forbidden Directions
+
+Avoid these directions unless the user explicitly requests them:
+
+- Generic dashboard appearance.
+- Strongly technical developer-tool appearance.
+- Overloaded forms.
+- Too many visually identical boxes.
+- Unnecessarily dominant danger buttons.
+- Large empty spaces without purpose.
+- Inconsistent components.
+- Default React Native look.
