@@ -77,6 +77,26 @@ export type CreateDecisionCriterionInput = {
   weight: CriterionWeight;
 };
 
+export type UpdateDecisionInput = {
+  decisionId: string;
+  title: string;
+  description: string;
+};
+
+export type UpdateDecisionOptionInput = {
+  decisionId: string;
+  optionId: string;
+  name: string;
+  note: string;
+};
+
+export type UpdateDecisionCriterionInput = {
+  decisionId: string;
+  criterionId: string;
+  name: string;
+  weight: CriterionWeight;
+};
+
 export type SetDecisionRatingInput = {
   decisionId: string;
   optionId: string;

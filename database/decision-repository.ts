@@ -179,6 +179,43 @@ export async function deleteOptionFromDatabase(decisionId: string, optionId: str
   });
 }
 
+export async function updateDecisionInDatabase(
+  decisionId: string,
+  title: string,
+  description: string,
+  updatedAt: string
+) {
+  const db = await getDatabase();
+  await db.runAsync(
+    'UPDATE decisions SET title = ?, description = ?, updated_at = ? WHERE id = ?',
+    title,
+    description,
+    updatedAt,
+    decisionId
+  );
+}
+
+export async function updateOptionInDatabase(
+  decisionId: string,
+  optionId: string,
+  name: string,
+  note: string,
+  updatedAt: string
+) {
+  const db = await getDatabase();
+  await db.withExclusiveTransactionAsync(async (transaction) => {
+    await transaction.runAsync(
+      'UPDATE options SET name = ?, note = ?, updated_at = ? WHERE id = ? AND decision_id = ?',
+      name,
+      note,
+      updatedAt,
+      optionId,
+      decisionId
+    );
+    await transaction.runAsync('UPDATE decisions SET updated_at = ? WHERE id = ?', updatedAt, decisionId);
+  });
+}
+
 export async function insertCriterion(
   decisionId: string,
   criterion: DecisionCriterion,
@@ -208,6 +245,27 @@ export async function deleteCriterionFromDatabase(
   await db.withExclusiveTransactionAsync(async (transaction) => {
     await transaction.runAsync(
       'DELETE FROM criteria WHERE id = ? AND decision_id = ?',
+      criterionId,
+      decisionId
+    );
+    await transaction.runAsync('UPDATE decisions SET updated_at = ? WHERE id = ?', updatedAt, decisionId);
+  });
+}
+
+export async function updateCriterionInDatabase(
+  decisionId: string,
+  criterionId: string,
+  name: string,
+  weight: CriterionWeight,
+  updatedAt: string
+) {
+  const db = await getDatabase();
+  await db.withExclusiveTransactionAsync(async (transaction) => {
+    await transaction.runAsync(
+      'UPDATE criteria SET name = ?, weight = ?, updated_at = ? WHERE id = ? AND decision_id = ?',
+      name,
+      weight,
+      updatedAt,
       criterionId,
       decisionId
     );

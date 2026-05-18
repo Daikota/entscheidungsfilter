@@ -8,6 +8,9 @@ import {
   insertDecisionWithDetails,
   insertOption,
   loadDecisionsFromDatabase,
+  updateCriterionInDatabase,
+  updateDecisionInDatabase,
+  updateOptionInDatabase,
   upsertRating,
 } from '@/database/decision-repository';
 import {
@@ -19,6 +22,9 @@ import {
   DecisionCriterion,
   DecisionOption,
   SetDecisionRatingInput,
+  UpdateDecisionCriterionInput,
+  UpdateDecisionInput,
+  UpdateDecisionOptionInput,
 } from '@/types/decision';
 
 type DecisionContextValue = {
@@ -27,9 +33,12 @@ type DecisionContextValue = {
   isDatabaseReady: boolean;
   addDecision: (input: CreateDecisionInput) => Promise<Decision>;
   addDecisionWithDetails: (input: CreateDecisionWithDetailsInput) => Promise<Decision>;
+  updateDecision: (input: UpdateDecisionInput) => Promise<void>;
   addOption: (input: CreateDecisionOptionInput) => Promise<DecisionOption>;
+  updateOption: (input: UpdateDecisionOptionInput) => Promise<void>;
   deleteOption: (decisionId: string, optionId: string) => Promise<void>;
   addCriterion: (input: CreateDecisionCriterionInput) => Promise<DecisionCriterion>;
+  updateCriterion: (input: UpdateDecisionCriterionInput) => Promise<void>;
   deleteCriterion: (decisionId: string, criterionId: string) => Promise<void>;
   setRating: (input: SetDecisionRatingInput) => Promise<void>;
 };
@@ -146,6 +155,49 @@ export function DecisionProvider({ children }: PropsWithChildren) {
     return option;
   }, []);
 
+  const updateDecision = useCallback(async (input: UpdateDecisionInput) => {
+    const now = new Date().toISOString();
+
+    await updateDecisionInDatabase(input.decisionId, input.title, input.description, now);
+    setDecisions((currentDecisions) =>
+      currentDecisions.map((decision) =>
+        decision.id === input.decisionId
+          ? {
+              ...decision,
+              title: input.title,
+              description: input.description,
+              updatedAt: now,
+            }
+          : decision
+      )
+    );
+  }, []);
+
+  const updateOption = useCallback(async (input: UpdateDecisionOptionInput) => {
+    const now = new Date().toISOString();
+
+    await updateOptionInDatabase(input.decisionId, input.optionId, input.name, input.note, now);
+    setDecisions((currentDecisions) =>
+      currentDecisions.map((decision) =>
+        decision.id === input.decisionId
+          ? {
+              ...decision,
+              options: decision.options.map((option) =>
+                option.id === input.optionId
+                  ? {
+                      ...option,
+                      name: input.name,
+                      note: input.note,
+                    }
+                  : option
+              ),
+              updatedAt: now,
+            }
+          : decision
+      )
+    );
+  }, []);
+
   const deleteOption = useCallback(async (decisionId: string, optionId: string) => {
     const now = new Date().toISOString();
 
@@ -187,6 +239,37 @@ export function DecisionProvider({ children }: PropsWithChildren) {
     );
 
     return criterion;
+  }, []);
+
+  const updateCriterion = useCallback(async (input: UpdateDecisionCriterionInput) => {
+    const now = new Date().toISOString();
+
+    await updateCriterionInDatabase(
+      input.decisionId,
+      input.criterionId,
+      input.name,
+      input.weight,
+      now
+    );
+    setDecisions((currentDecisions) =>
+      currentDecisions.map((decision) =>
+        decision.id === input.decisionId
+          ? {
+              ...decision,
+              criteria: decision.criteria.map((criterion) =>
+                criterion.id === input.criterionId
+                  ? {
+                      ...criterion,
+                      name: input.name,
+                      weight: input.weight,
+                    }
+                  : criterion
+              ),
+              updatedAt: now,
+            }
+          : decision
+      )
+    );
   }, []);
 
   const deleteCriterion = useCallback(async (decisionId: string, criterionId: string) => {
@@ -258,9 +341,12 @@ export function DecisionProvider({ children }: PropsWithChildren) {
         isDatabaseReady,
         addDecision,
         addDecisionWithDetails,
+        updateDecision,
         addOption,
+        updateOption,
         deleteOption,
         addCriterion,
+        updateCriterion,
         deleteCriterion,
         setRating,
       }}>

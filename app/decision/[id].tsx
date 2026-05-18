@@ -20,21 +20,36 @@ export default function DecisionDetailScreen() {
     databaseError,
     isDatabaseReady,
     addOption,
+    updateDecision,
+    updateOption,
     deleteOption,
     addCriterion,
+    updateCriterion,
     deleteCriterion,
   } = useDecisions();
   const insets = useSafeAreaInsets();
   const decision = decisions.find((currentDecision) => currentDecision.id === id);
 
+  const [isDecisionEditVisible, setIsDecisionEditVisible] = useState(false);
+  const [editDecisionTitle, setEditDecisionTitle] = useState('');
+  const [editDecisionDescription, setEditDecisionDescription] = useState('');
+  const [decisionError, setDecisionError] = useState('');
   const [isOptionFormVisible, setIsOptionFormVisible] = useState(false);
   const [optionName, setOptionName] = useState('');
   const [optionNote, setOptionNote] = useState('');
   const [optionError, setOptionError] = useState('');
+  const [editingOptionId, setEditingOptionId] = useState<string | null>(null);
+  const [editOptionName, setEditOptionName] = useState('');
+  const [editOptionNote, setEditOptionNote] = useState('');
+  const [editOptionError, setEditOptionError] = useState('');
   const [isCriterionFormVisible, setIsCriterionFormVisible] = useState(false);
   const [criterionName, setCriterionName] = useState('');
   const [criterionWeight, setCriterionWeight] = useState<CriterionWeight>(2);
   const [criterionError, setCriterionError] = useState('');
+  const [editingCriterionId, setEditingCriterionId] = useState<string | null>(null);
+  const [editCriterionName, setEditCriterionName] = useState('');
+  const [editCriterionWeight, setEditCriterionWeight] = useState<CriterionWeight>(2);
+  const [editCriterionError, setEditCriterionError] = useState('');
 
   if (!isDatabaseReady) {
     return (
@@ -98,6 +113,71 @@ export default function DecisionDetailScreen() {
     }
   };
 
+  const openDecisionEdit = () => {
+    setEditDecisionTitle(decision.title);
+    setEditDecisionDescription(decision.description);
+    setDecisionError('');
+    setIsDecisionEditVisible(true);
+  };
+
+  const handleUpdateDecision = async () => {
+    const trimmedTitle = editDecisionTitle.trim();
+    const trimmedDescription = editDecisionDescription.trim();
+
+    if (trimmedTitle.length === 0) {
+      setDecisionError('Bitte gib einen Titel ein.');
+      return;
+    }
+
+    try {
+      await updateDecision({
+        decisionId: decision.id,
+        title: trimmedTitle,
+        description: trimmedDescription,
+      });
+      setDecisionError('');
+      setIsDecisionEditVisible(false);
+    } catch (error) {
+      console.error('Failed to update decision', error);
+      setDecisionError('Die Entscheidung konnte nicht gespeichert werden.');
+    }
+  };
+
+  const openOptionEdit = (optionId: string, name: string, note: string) => {
+    setEditingOptionId(optionId);
+    setEditOptionName(name);
+    setEditOptionNote(note);
+    setEditOptionError('');
+  };
+
+  const handleUpdateOption = async () => {
+    if (editingOptionId === null) {
+      return;
+    }
+
+    const trimmedName = editOptionName.trim();
+    const trimmedNote = editOptionNote.trim();
+
+    if (trimmedName.length === 0) {
+      setEditOptionError('Bitte gib einen Namen ein.');
+      return;
+    }
+
+    try {
+      await updateOption({
+        decisionId: decision.id,
+        optionId: editingOptionId,
+        name: trimmedName,
+        note: trimmedNote,
+      });
+      setEditingOptionId(null);
+      setEditOptionError('');
+    } catch (error) {
+      console.error('Failed to update option', error);
+      setEditOptionError('Die Option konnte nicht gespeichert werden.');
+    }
+  };
+
   const handleAddCriterion = async () => {
     const trimmedName = criterionName.trim();
 
@@ -122,16 +202,102 @@ export default function DecisionDetailScreen() {
     }
   };
 
+  const openCriterionEdit = (criterionId: string, name: string, weight: CriterionWeight) => {
+    setEditingCriterionId(criterionId);
+    setEditCriterionName(name);
+    setEditCriterionWeight(weight);
+    setEditCriterionError('');
+  };
+
+  const handleUpdateCriterion = async () => {
+    if (editingCriterionId === null) {
+      return;
+    }
+
+    const trimmedName = editCriterionName.trim();
+
+    if (trimmedName.length === 0) {
+      setEditCriterionError('Bitte gib einen Namen ein.');
+      return;
+    }
+
+    try {
+      await updateCriterion({
+        decisionId: decision.id,
+        criterionId: editingCriterionId,
+        name: trimmedName,
+        weight: editCriterionWeight,
+      });
+      setEditingCriterionId(null);
+      setEditCriterionError('');
+    } catch (error) {
+      console.error('Failed to update criterion', error);
+      setEditCriterionError('Das Kriterium konnte nicht gespeichert werden.');
+    }
+  };
+
   return (
     <View style={styles.screen}>
       <ScrollView
         contentContainerStyle={[styles.content, { paddingBottom: Math.max(insets.bottom + 120, 140) }]}
         keyboardShouldPersistTaps="handled">
         <AppCard elevated style={styles.heroCard}>
-          <Text style={styles.kicker}>Entscheidung</Text>
-          <Text style={styles.title}>{decision.title}</Text>
+          <View style={styles.heroTopRow}>
+            <View style={styles.heroTitleGroup}>
+              <Text style={styles.kicker}>Entscheidung</Text>
+              <Text style={styles.title}>{decision.title}</Text>
+            </View>
+            <IconButton
+              icon={isDecisionEditVisible ? 'close' : 'create-outline'}
+              label={isDecisionEditVisible ? 'Bearbeiten schließen' : 'Entscheidung bearbeiten'}
+              onPress={() => {
+                if (isDecisionEditVisible) {
+                  setIsDecisionEditVisible(false);
+                  setDecisionError('');
+                } else {
+                  openDecisionEdit();
+                }
+              }}
+            />
+          </View>
           {decision.description.length > 0 ? (
             <Text style={styles.description}>{decision.description}</Text>
+          ) : null}
+          {isDecisionEditVisible ? (
+            <View style={styles.editPanel}>
+              <AppInput
+                accessibilityLabel="Entscheidungstitel bearbeiten"
+                hasError={decisionError.length > 0 && editDecisionTitle.trim().length === 0}
+                onChangeText={setEditDecisionTitle}
+                placeholder="Titel"
+                value={editDecisionTitle}
+              />
+              <AppInput
+                accessibilityLabel="Beschreibung bearbeiten"
+                multiline
+                onChangeText={setEditDecisionDescription}
+                placeholder="Beschreibung optional"
+                style={styles.compactTextArea}
+                value={editDecisionDescription}
+              />
+              {decisionError.length > 0 ? (
+                <Text accessibilityRole="alert" style={styles.errorText}>
+                  {decisionError}
+                </Text>
+              ) : null}
+              <View style={styles.editActions}>
+                <AppButton
+                  icon="close"
+                  onPress={() => {
+                    setIsDecisionEditVisible(false);
+                    setDecisionError('');
+                  }}
+                  title="Abbrechen"
+                  variant="ghost"
+                />
+                <AppButton icon="checkmark" onPress={handleUpdateDecision} title="Sichern" />
+              </View>
+            </View>
           ) : null}
           <View style={styles.statsRow}>
             <StatPill icon="list-outline" label="Optionen" value={`${decision.options.length}`} emphasis />
@@ -192,23 +358,69 @@ export default function DecisionDetailScreen() {
             <View style={styles.itemList}>
               {decision.options.map((option) => (
                 <AppCard key={option.id} style={styles.itemCard}>
-                  <View style={styles.itemIcon}>
-                    <Ionicons color={theme.colors.primary} name="radio-button-on-outline" size={18} />
-                  </View>
-                  <View style={styles.itemContent}>
-                    <Text style={styles.itemTitle}>{option.name}</Text>
-                    {option.note.length > 0 ? <Text style={styles.itemText}>{option.note}</Text> : null}
-                  </View>
-                  <IconButton
-                    icon="trash-outline"
-                    label={`Option ${option.name} löschen`}
-                    onPress={() => {
-                      deleteOption(decision.id, option.id).catch((error) => {
-                        console.error('Failed to delete option', error);
-                      });
-                    }}
-                    variant="danger"
-                  />
+                  {editingOptionId === option.id ? (
+                    <View style={styles.inlineEdit}>
+                      <AppInput
+                        accessibilityLabel="Optionsname bearbeiten"
+                        hasError={editOptionError.length > 0 && editOptionName.trim().length === 0}
+                        onChangeText={setEditOptionName}
+                        placeholder="Option"
+                        value={editOptionName}
+                      />
+                      <AppInput
+                        accessibilityLabel="Optionsnotiz bearbeiten"
+                        multiline
+                        onChangeText={setEditOptionNote}
+                        placeholder="Notiz optional"
+                        style={styles.compactTextArea}
+                        value={editOptionNote}
+                      />
+                      {editOptionError.length > 0 ? (
+                        <Text accessibilityRole="alert" style={styles.errorText}>
+                          {editOptionError}
+                        </Text>
+                      ) : null}
+                      <View style={styles.editActions}>
+                        <AppButton
+                          icon="close"
+                          onPress={() => {
+                            setEditingOptionId(null);
+                            setEditOptionError('');
+                          }}
+                          title="Abbrechen"
+                          variant="ghost"
+                        />
+                        <AppButton icon="checkmark" onPress={handleUpdateOption} title="Sichern" />
+                      </View>
+                    </View>
+                  ) : (
+                    <>
+                      <View style={styles.itemIcon}>
+                        <Ionicons color={theme.colors.primary} name="radio-button-on-outline" size={18} />
+                      </View>
+                      <View style={styles.itemContent}>
+                        <Text style={styles.itemTitle}>{option.name}</Text>
+                        {option.note.length > 0 ? <Text style={styles.itemText}>{option.note}</Text> : null}
+                      </View>
+                      <View style={styles.itemActions}>
+                        <IconButton
+                          icon="create-outline"
+                          label={`Option ${option.name} bearbeiten`}
+                          onPress={() => openOptionEdit(option.id, option.name, option.note)}
+                        />
+                        <IconButton
+                          icon="trash-outline"
+                          label={`Option ${option.name} löschen`}
+                          onPress={() => {
+                            deleteOption(decision.id, option.id).catch((error) => {
+                              console.error('Failed to delete option', error);
+                            });
+                          }}
+                          variant="danger"
+                        />
+                      </View>
+                    </>
+                  )}
                 </AppCard>
               ))}
             </View>
@@ -285,23 +497,86 @@ export default function DecisionDetailScreen() {
             <View style={styles.itemList}>
               {decision.criteria.map((criterion) => (
                 <AppCard key={criterion.id} style={styles.itemCard}>
-                  <View style={styles.itemIcon}>
-                    <Ionicons color={theme.colors.primary} name="speedometer-outline" size={18} />
-                  </View>
-                  <View style={styles.itemContent}>
-                    <Text style={styles.itemTitle}>{criterion.name}</Text>
-                    <Text style={styles.itemText}>Gewichtung {criterion.weight}</Text>
-                  </View>
-                  <IconButton
-                    icon="trash-outline"
-                    label={`Kriterium ${criterion.name} löschen`}
-                    onPress={() => {
-                      deleteCriterion(decision.id, criterion.id).catch((error) => {
-                        console.error('Failed to delete criterion', error);
-                      });
-                    }}
-                    variant="danger"
-                  />
+                  {editingCriterionId === criterion.id ? (
+                    <View style={styles.inlineEdit}>
+                      <AppInput
+                        accessibilityLabel="Kriteriumsname bearbeiten"
+                        hasError={editCriterionError.length > 0 && editCriterionName.trim().length === 0}
+                        onChangeText={setEditCriterionName}
+                        placeholder="Kriterium"
+                        value={editCriterionName}
+                      />
+                      <View style={styles.weightGroup}>
+                        <Text style={styles.weightLabel}>Gewichtung</Text>
+                        <View style={styles.weightButtons}>
+                          {criterionWeights.map((weight) => (
+                            <Pressable
+                              accessibilityRole="button"
+                              accessibilityState={{ selected: editCriterionWeight === weight }}
+                              key={weight}
+                              onPress={() => setEditCriterionWeight(weight)}
+                              style={({ pressed }) => [
+                                styles.weightButton,
+                                editCriterionWeight === weight && styles.weightButtonSelected,
+                                pressed && styles.weightButtonPressed,
+                              ]}>
+                              <Text
+                                style={[
+                                  styles.weightButtonText,
+                                  editCriterionWeight === weight && styles.weightButtonTextSelected,
+                                ]}>
+                                {weight}
+                              </Text>
+                            </Pressable>
+                          ))}
+                        </View>
+                      </View>
+                      {editCriterionError.length > 0 ? (
+                        <Text accessibilityRole="alert" style={styles.errorText}>
+                          {editCriterionError}
+                        </Text>
+                      ) : null}
+                      <View style={styles.editActions}>
+                        <AppButton
+                          icon="close"
+                          onPress={() => {
+                            setEditingCriterionId(null);
+                            setEditCriterionError('');
+                          }}
+                          title="Abbrechen"
+                          variant="ghost"
+                        />
+                        <AppButton icon="checkmark" onPress={handleUpdateCriterion} title="Sichern" />
+                      </View>
+                    </View>
+                  ) : (
+                    <>
+                      <View style={styles.itemIcon}>
+                        <Ionicons color={theme.colors.primary} name="speedometer-outline" size={18} />
+                      </View>
+                      <View style={styles.itemContent}>
+                        <Text style={styles.itemTitle}>{criterion.name}</Text>
+                        <Text style={styles.itemText}>Gewichtung {criterion.weight}</Text>
+                      </View>
+                      <View style={styles.itemActions}>
+                        <IconButton
+                          icon="create-outline"
+                          label={`Kriterium ${criterion.name} bearbeiten`}
+                          onPress={() => openCriterionEdit(criterion.id, criterion.name, criterion.weight)}
+                        />
+                        <IconButton
+                          icon="trash-outline"
+                          label={`Kriterium ${criterion.name} löschen`}
+                          onPress={() => {
+                            deleteCriterion(decision.id, criterion.id).catch((error) => {
+                              console.error('Failed to delete criterion', error);
+                            });
+                          }}
+                          variant="danger"
+                        />
+                      </View>
+                    </>
+                  )}
                 </AppCard>
               ))}
             </View>
@@ -331,6 +606,15 @@ const createStyles = (theme: AppThemeValues) => StyleSheet.create({
   heroCard: {
     gap: 11,
   },
+  heroTopRow: {
+    alignItems: 'flex-start',
+    flexDirection: 'row',
+    gap: 12,
+  },
+  heroTitleGroup: {
+    flex: 1,
+    gap: 6,
+  },
   kicker: {
     color: theme.colors.primary,
     fontSize: 12,
@@ -354,6 +638,19 @@ const createStyles = (theme: AppThemeValues) => StyleSheet.create({
     flexWrap: 'wrap',
     gap: 8,
     paddingTop: 2,
+  },
+  editPanel: {
+    backgroundColor: theme.colors.surfaceTint,
+    borderColor: theme.colors.borderSoft,
+    borderRadius: theme.radius.lg,
+    borderWidth: 1,
+    gap: 12,
+    padding: 12,
+  },
+  editActions: {
+    flexDirection: 'row',
+    gap: 10,
+    justifyContent: 'flex-end',
   },
   section: {
     gap: 12,
@@ -379,6 +676,10 @@ const createStyles = (theme: AppThemeValues) => StyleSheet.create({
     gap: 12,
     padding: 12,
   },
+  inlineEdit: {
+    flex: 1,
+    gap: 12,
+  },
   itemIcon: {
     alignItems: 'center',
     backgroundColor: theme.colors.primarySoft,
@@ -390,6 +691,10 @@ const createStyles = (theme: AppThemeValues) => StyleSheet.create({
   itemContent: {
     flex: 1,
     gap: 3,
+  },
+  itemActions: {
+    flexDirection: 'row',
+    gap: 8,
   },
   itemTitle: {
     color: theme.colors.textStrong,

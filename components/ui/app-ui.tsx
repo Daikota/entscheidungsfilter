@@ -1,6 +1,16 @@
 import { Ionicons } from '@expo/vector-icons';
 import { ReactNode } from 'react';
-import { Pressable, StyleProp, StyleSheet, Text, TextInput, TextInputProps, View, ViewStyle } from 'react-native';
+import {
+  Pressable,
+  PressableProps,
+  StyleProp,
+  StyleSheet,
+  Text,
+  TextInput,
+  TextInputProps,
+  View,
+  ViewStyle,
+} from 'react-native';
 
 import { AppThemeValues, useAppTheme } from '@/constants/theme';
 
@@ -8,12 +18,11 @@ type IconName = keyof typeof Ionicons.glyphMap;
 
 type AppButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger';
 
-type AppButtonProps = {
+type AppButtonProps = Omit<PressableProps, 'children' | 'disabled' | 'style'> & {
   title: string;
   icon?: IconName;
   variant?: AppButtonVariant;
   disabled?: boolean;
-  onPress?: () => void;
   accessibilityLabel?: string;
   style?: StyleProp<ViewStyle>;
 };
@@ -26,6 +35,7 @@ export function AppButton({
   onPress,
   accessibilityLabel,
   style,
+  ...pressableProps
 }: AppButtonProps) {
   const theme = useAppTheme();
   const styles = createStyles(theme);
@@ -44,6 +54,7 @@ export function AppButton({
       accessibilityState={{ disabled }}
       disabled={disabled}
       onPress={onPress}
+      {...pressableProps}
       style={({ pressed }) => [
         styles.button,
         styles[`${variant}Button`],
