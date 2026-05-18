@@ -27,6 +27,12 @@ import {
   UpdateDecisionInput,
   UpdateDecisionOptionInput,
 } from '@/types/decision';
+import {
+  hasDuplicateName,
+  hasDuplicateNameInList,
+  isCriterionWeight,
+  isRatingScore,
+} from '@/utils/decision-validation';
 
 type DecisionContextValue = {
   decisions: Decision[];
@@ -49,6 +55,12 @@ const DecisionContext = createContext<DecisionContextValue | null>(null);
 
 const createDecisionId = () => `decision-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
 const createChildId = (prefix: string) => `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+
+const assertNonEmptyName = (value: string, message: string) => {
+  if (value.trim().length === 0) {
+    throw new Error(message);
+  }
+};
 
 export function DecisionProvider({ children }: PropsWithChildren) {
   const [decisions, setDecisions] = useState<Decision[]>([]);
@@ -87,6 +99,8 @@ export function DecisionProvider({ children }: PropsWithChildren) {
   }, []);
 
   const addDecision = useCallback(async (input: CreateDecisionInput) => {
+    assertNonEmptyName(input.title, 'Decision title is required');
+
     const now = new Date().toISOString();
     const decision: Decision = {
       id: createDecisionId(),
@@ -105,6 +119,32 @@ export function DecisionProvider({ children }: PropsWithChildren) {
   }, []);
 
   const addDecisionWithDetails = useCallback(async (input: CreateDecisionWithDetailsInput) => {
+    assertNonEmptyName(input.title, 'Decision title is required');
+
+    const optionNames = input.options.map((option) => option.name);
+    const criterionNames = input.criteria.map((criterion) => criterion.name);
+
+    for (const option of input.options) {
+      assertNonEmptyName(option.name, 'Option name is required');
+
+    }
+
+    if (hasDuplicateNameInList(optionNames)) {
+      throw new Error('Duplicate option name');
+    }
+
+    for (const criterion of input.criteria) {
+      assertNonEmptyName(criterion.name, 'Criterion name is required');
+
+      if (!isCriterionWeight(criterion.weight)) {
+        throw new Error('Invalid criterion weight');
+      }
+    }
+
+    if (hasDuplicateNameInList(criterionNames)) {
+      throw new Error('Duplicate criterion name');
+    }
+
     const now = new Date().toISOString();
     const decision: Decision = {
       id: createDecisionId(),
@@ -133,7 +173,18 @@ export function DecisionProvider({ children }: PropsWithChildren) {
   }, []);
 
   const addOption = useCallback(async (input: CreateDecisionOptionInput) => {
+    assertNonEmptyName(input.name, 'Option name is required');
+
     const now = new Date().toISOString();
+    const currentDecision = decisions.find((decision) => decision.id === input.decisionId);
+
+    if (
+      currentDecision !== undefined &&
+      hasDuplicateName(input.name, currentDecision.options.map((option) => option.name))
+    ) {
+      throw new Error('Duplicate option name');
+    }
+
     const option: DecisionOption = {
       id: createChildId('option'),
       name: input.name,
@@ -155,9 +206,11 @@ export function DecisionProvider({ children }: PropsWithChildren) {
     );
 
     return option;
-  }, []);
+  }, [decisions]);
 
   const updateDecision = useCallback(async (input: UpdateDecisionInput) => {
+    assertNonEmptyName(input.title, 'Decision title is required');
+
     const now = new Date().toISOString();
 
     await updateDecisionInDatabase(input.decisionId, input.title, input.description, now);
@@ -183,7 +236,22 @@ export function DecisionProvider({ children }: PropsWithChildren) {
   }, []);
 
   const updateOption = useCallback(async (input: UpdateDecisionOptionInput) => {
+    assertNonEmptyName(input.name, 'Option name is required');
+
     const now = new Date().toISOString();
+    const currentDecision = decisions.find((decision) => decision.id === input.decisionId);
+    const currentOption = currentDecision?.options.find((option) => option.id === input.optionId);
+
+    if (
+      currentDecision !== undefined &&
+      hasDuplicateName(
+        input.name,
+        currentDecision.options.map((option) => option.name),
+        currentOption?.name
+      )
+    ) {
+      throw new Error('Duplicate option name');
+    }
 
     await updateOptionInDatabase(input.decisionId, input.optionId, input.name, input.note, now);
     setDecisions((currentDecisions) =>
@@ -205,7 +273,7 @@ export function DecisionProvider({ children }: PropsWithChildren) {
           : decision
       )
     );
-  }, []);
+  }, [decisions]);
 
   const deleteOption = useCallback(async (decisionId: string, optionId: string) => {
     const now = new Date().toISOString();
@@ -226,7 +294,22 @@ export function DecisionProvider({ children }: PropsWithChildren) {
   }, []);
 
   const addCriterion = useCallback(async (input: CreateDecisionCriterionInput) => {
+    assertNonEmptyName(input.name, 'Criterion name is required');
+
+    if (!isCriterionWeight(input.weight)) {
+      throw new Error('Invalid criterion weight');
+    }
+
     const now = new Date().toISOString();
+    const currentDecision = decisions.find((decision) => decision.id === input.decisionId);
+
+    if (
+      currentDecision !== undefined &&
+      hasDuplicateName(input.name, currentDecision.criteria.map((criterion) => criterion.name))
+    ) {
+      throw new Error('Duplicate criterion name');
+    }
+
     const criterion: DecisionCriterion = {
       id: createChildId('criterion'),
       name: input.name,
@@ -248,10 +331,31 @@ export function DecisionProvider({ children }: PropsWithChildren) {
     );
 
     return criterion;
-  }, []);
+  }, [decisions]);
 
   const updateCriterion = useCallback(async (input: UpdateDecisionCriterionInput) => {
+    assertNonEmptyName(input.name, 'Criterion name is required');
+
+    if (!isCriterionWeight(input.weight)) {
+      throw new Error('Invalid criterion weight');
+    }
+
     const now = new Date().toISOString();
+    const currentDecision = decisions.find((decision) => decision.id === input.decisionId);
+    const currentCriterion = currentDecision?.criteria.find(
+      (criterion) => criterion.id === input.criterionId
+    );
+
+    if (
+      currentDecision !== undefined &&
+      hasDuplicateName(
+        input.name,
+        currentDecision.criteria.map((criterion) => criterion.name),
+        currentCriterion?.name
+      )
+    ) {
+      throw new Error('Duplicate criterion name');
+    }
 
     await updateCriterionInDatabase(
       input.decisionId,
@@ -279,7 +383,7 @@ export function DecisionProvider({ children }: PropsWithChildren) {
           : decision
       )
     );
-  }, []);
+  }, [decisions]);
 
   const deleteCriterion = useCallback(async (decisionId: string, criterionId: string) => {
     const now = new Date().toISOString();
@@ -300,8 +404,26 @@ export function DecisionProvider({ children }: PropsWithChildren) {
   }, []);
 
   const setRating = useCallback(async (input: SetDecisionRatingInput) => {
+    if (!isRatingScore(input.score)) {
+      throw new Error('Invalid rating score');
+    }
+
     const now = new Date().toISOString();
     const currentDecision = decisions.find((decision) => decision.id === input.decisionId);
+
+    if (currentDecision === undefined) {
+      throw new Error('Decision not found');
+    }
+
+    const hasOption = currentDecision.options.some((option) => option.id === input.optionId);
+    const hasCriterion = currentDecision.criteria.some(
+      (criterion) => criterion.id === input.criterionId
+    );
+
+    if (!hasOption || !hasCriterion) {
+      throw new Error('Rating target not found');
+    }
+
     const existingRating = currentDecision?.ratings.find(
       (rating) => rating.optionId === input.optionId && rating.criterionId === input.criterionId
     );

@@ -13,6 +13,7 @@ import {
   getDecisionRatingProgress,
   getOptionRatingProgress,
 } from '@/utils/decision-results';
+import { canStartRating } from '@/utils/decision-validation';
 
 const ratingScores: RatingScore[] = [1, 2, 3, 4, 5];
 
@@ -62,7 +63,7 @@ export default function DecisionRatingsScreen() {
     );
   }
 
-  const hasMissingSetup = decision.options.length === 0 || decision.criteria.length === 0;
+  const hasMissingSetup = !canStartRating(decision.options.length, decision.criteria.length);
   const results = hasMissingSetup ? [] : calculateDecisionResults(decision);
   const maxScore = results.length > 0 ? results[0].totalScore : 0;
   const ratingProgress = getDecisionRatingProgress(decision);
@@ -110,7 +111,7 @@ export default function DecisionRatingsScreen() {
         <EmptyState
           icon="construct-outline"
           title="Noch nicht bereit"
-          message="Du brauchst mindestens eine Option und ein Kriterium, bevor die Analyse Sinn ergibt."
+          message="Mindestens 2 Optionen und 1 Kriterium."
         />
       ) : (
         <>
@@ -129,7 +130,7 @@ export default function DecisionRatingsScreen() {
                       <Ionicons color={theme.colors.primary} name="cube-outline" size={19} />
                     </View>
                     <View style={styles.optionTitleGroup}>
-                      <Text style={styles.optionTitle}>{option.name}</Text>
+                      <Text numberOfLines={2} style={styles.optionTitle}>{option.name}</Text>
                       <Text style={styles.optionProgressText}>
                         {optionProgress.completed}/{optionProgress.total} bewertet
                       </Text>
@@ -164,7 +165,7 @@ export default function DecisionRatingsScreen() {
                           style={[styles.ratingBlock, isMissing && styles.ratingBlockMissing]}>
                           <View style={styles.ratingHeader}>
                             <View style={styles.criterionTextGroup}>
-                              <Text style={styles.criterionName}>{criterion.name}</Text>
+                              <Text numberOfLines={2} style={styles.criterionName}>{criterion.name}</Text>
                               <Text style={styles.weightText}>Gewichtung {criterion.weight}</Text>
                             </View>
                             {selectedRating ? (
@@ -258,7 +259,7 @@ export default function DecisionRatingsScreen() {
                         </Text>
                       </View>
                       <View style={styles.resultContent}>
-                        <Text style={styles.resultTitle}>{result.optionName}</Text>
+                        <Text numberOfLines={2} style={styles.resultTitle}>{result.optionName}</Text>
                         <Text style={styles.resultLabel}>
                           {result.isComplete ? result.label : `${result.label} · ${result.missingRatings} offen`}
                         </Text>

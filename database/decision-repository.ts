@@ -6,6 +6,7 @@ import {
   DecisionRating,
   RatingScore,
 } from '@/types/decision';
+import { isCriterionWeight, isRatingScore } from '@/utils/decision-validation';
 
 import { getDatabase } from './database';
 
@@ -44,11 +45,6 @@ type RatingRow = {
   created_at: string;
   updated_at: string;
 };
-
-const isCriterionWeight = (value: number): value is CriterionWeight => value === 1 || value === 2 || value === 3;
-
-const isRatingScore = (value: number): value is RatingScore =>
-  value === 1 || value === 2 || value === 3 || value === 4 || value === 5;
 
 export async function loadDecisionsFromDatabase() {
   const db = await getDatabase();

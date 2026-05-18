@@ -8,6 +8,7 @@ import { AppButton, AppCard, AppInput, EmptyState, IconButton, SectionHeader, St
 import { AppThemeValues, useAppTheme } from '@/constants/theme';
 import { useDecisions } from '@/contexts/decision-context';
 import { CriterionWeight } from '@/types/decision';
+import { canStartRating, hasDuplicateName } from '@/utils/decision-validation';
 
 const criterionWeights: CriterionWeight[] = [1, 2, 3];
 
@@ -39,6 +40,7 @@ export default function DecisionDetailScreen() {
   const [isDeleteConfirmVisible, setIsDeleteConfirmVisible] = useState(false);
   const [deleteError, setDeleteError] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
+  const [ratingStartError, setRatingStartError] = useState('');
   const [isOptionFormVisible, setIsOptionFormVisible] = useState(false);
   const [optionName, setOptionName] = useState('');
   const [optionNote, setOptionNote] = useState('');
@@ -98,7 +100,12 @@ export default function DecisionDetailScreen() {
     const trimmedNote = optionNote.trim();
 
     if (trimmedName.length === 0) {
-      setOptionError('Bitte gib einen Namen für die Option ein.');
+      setOptionError('Optionsname fehlt.');
+      return;
+    }
+
+    if (hasDuplicateName(trimmedName, decision.options.map((option) => option.name))) {
+      setOptionError('Option gibt es schon.');
       return;
     }
 
@@ -130,7 +137,7 @@ export default function DecisionDetailScreen() {
     const trimmedDescription = editDecisionDescription.trim();
 
     if (trimmedTitle.length === 0) {
-      setDecisionError('Bitte gib einen Titel ein.');
+      setDecisionError('Titel fehlt.');
       return;
     }
 
@@ -178,7 +185,20 @@ export default function DecisionDetailScreen() {
     const trimmedNote = editOptionNote.trim();
 
     if (trimmedName.length === 0) {
-      setEditOptionError('Bitte gib einen Namen ein.');
+      setEditOptionError('Optionsname fehlt.');
+      return;
+    }
+
+    const currentOption = decision.options.find((option) => option.id === editingOptionId);
+
+    if (
+      hasDuplicateName(
+        trimmedName,
+        decision.options.map((option) => option.name),
+        currentOption?.name
+      )
+    ) {
+      setEditOptionError('Option gibt es schon.');
       return;
     }
 
@@ -201,7 +221,12 @@ export default function DecisionDetailScreen() {
     const trimmedName = criterionName.trim();
 
     if (trimmedName.length === 0) {
-      setCriterionError('Bitte gib einen Namen für das Kriterium ein.');
+      setCriterionError('Kriterienname fehlt.');
+      return;
+    }
+
+    if (hasDuplicateName(trimmedName, decision.criteria.map((criterion) => criterion.name))) {
+      setCriterionError('Kriterium gibt es schon.');
       return;
     }
 
@@ -236,7 +261,22 @@ export default function DecisionDetailScreen() {
     const trimmedName = editCriterionName.trim();
 
     if (trimmedName.length === 0) {
-      setEditCriterionError('Bitte gib einen Namen ein.');
+      setEditCriterionError('Kriterienname fehlt.');
+      return;
+    }
+
+    const currentCriterion = decision.criteria.find(
+      (criterion) => criterion.id === editingCriterionId
+    );
+
+    if (
+      hasDuplicateName(
+        trimmedName,
+        decision.criteria.map((criterion) => criterion.name),
+        currentCriterion?.name
+      )
+    ) {
+      setEditCriterionError('Kriterium gibt es schon.');
       return;
     }
 
@@ -253,6 +293,16 @@ export default function DecisionDetailScreen() {
       console.error('Failed to update criterion', error);
       setEditCriterionError('Das Kriterium konnte nicht gespeichert werden.');
     }
+  };
+
+  const handleStartRating = () => {
+    if (!canStartRating(decision.options.length, decision.criteria.length)) {
+      setRatingStartError('Mindestens 2 Optionen und 1 Kriterium.');
+      return;
+    }
+
+    setRatingStartError('');
+    router.push({ pathname: '/decision/[id]/ratings', params: { id: decision.id } });
   };
 
   return (
@@ -418,7 +468,7 @@ export default function DecisionDetailScreen() {
                         <Ionicons color={theme.colors.primary} name="radio-button-on-outline" size={18} />
                       </View>
                       <View style={styles.itemContent}>
-                        <Text style={styles.itemTitle}>{option.name}</Text>
+                        <Text numberOfLines={2} style={styles.itemTitle}>{option.name}</Text>
                         {option.note.length > 0 ? <Text style={styles.itemText}>{option.note}</Text> : null}
                       </View>
                       <View style={styles.itemActions}>
@@ -574,7 +624,7 @@ export default function DecisionDetailScreen() {
                         <Ionicons color={theme.colors.primary} name="speedometer-outline" size={18} />
                       </View>
                       <View style={styles.itemContent}>
-                        <Text style={styles.itemTitle}>{criterion.name}</Text>
+                        <Text numberOfLines={2} style={styles.itemTitle}>{criterion.name}</Text>
                         <Text style={styles.itemText}>Gewichtung {criterion.weight}</Text>
                       </View>
                       <View style={styles.itemActions}>
@@ -655,9 +705,12 @@ export default function DecisionDetailScreen() {
       </ScrollView>
 
       <View style={[styles.actionBar, { paddingBottom: Math.max(insets.bottom + 14, 30) }]}>
-        <Link href={{ pathname: '/decision/[id]/ratings', params: { id: decision.id } }} asChild>
-          <AppButton icon="analytics-outline" title="Bewerten" />
-        </Link>
+        {ratingStartError.length > 0 ? (
+          <Text accessibilityRole="alert" style={styles.actionErrorText}>
+            {ratingStartError}
+          </Text>
+        ) : null}
+        <AppButton icon="analytics-outline" onPress={handleStartRating} title="Bewerten" />
       </View>
     </View>
   );
@@ -849,9 +902,16 @@ const createStyles = (theme: AppThemeValues) => StyleSheet.create({
     backgroundColor: theme.colors.surface,
     borderTopColor: theme.colors.borderSoft,
     borderTopWidth: 1,
+    gap: 10,
     paddingHorizontal: theme.spacing.screenX,
     paddingTop: 14,
     ...theme.shadow.footer,
+  },
+  actionErrorText: {
+    color: theme.colors.dangerStrong,
+    fontSize: 13,
+    fontWeight: '800',
+    textAlign: 'center',
   },
   messageContent: {
     flex: 1,

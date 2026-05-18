@@ -8,6 +8,7 @@ import { AppButton, AppCard, AppInput, IconButton, SectionHeader, StatPill } fro
 import { AppThemeValues, useAppTheme } from '@/constants/theme';
 import { useDecisions } from '@/contexts/decision-context';
 import { CriterionWeight } from '@/types/decision';
+import { hasDuplicateName, hasDuplicateNameInList } from '@/utils/decision-validation';
 
 type DraftOption = {
   id: string;
@@ -49,7 +50,12 @@ export default function CreateDecisionScreen() {
     const trimmedNote = optionNote.trim();
 
     if (trimmedName.length === 0) {
-      setFeedbackMessage('Bitte gib einen Namen für die Option ein.');
+      setFeedbackMessage('Optionsname fehlt.');
+      return;
+    }
+
+    if (hasDuplicateName(trimmedName, draftOptions.map((option) => option.name))) {
+      setFeedbackMessage('Option gibt es schon.');
       return;
     }
 
@@ -71,7 +77,12 @@ export default function CreateDecisionScreen() {
     const trimmedName = criterionName.trim();
 
     if (trimmedName.length === 0) {
-      setFeedbackMessage('Bitte gib einen Namen für das Kriterium ein.');
+      setFeedbackMessage('Kriterienname fehlt.');
+      return;
+    }
+
+    if (hasDuplicateName(trimmedName, draftCriteria.map((criterion) => criterion.name))) {
+      setFeedbackMessage('Kriterium gibt es schon.');
       return;
     }
 
@@ -128,12 +139,25 @@ export default function CreateDecisionScreen() {
     const trimmedDescription = description.trim();
 
     if (trimmedTitle.length === 0) {
-      setFeedbackMessage('Bitte gib einen Titel ein.');
+      setFeedbackMessage('Titel fehlt.');
       return;
     }
 
     if (optionNote.trim().length > 0 && optionName.trim().length === 0) {
-      setFeedbackMessage('Bitte gib einen Namen für die Option mit Notiz ein.');
+      setFeedbackMessage('Optionsname fehlt.');
+      return;
+    }
+
+    const optionsForSave = getOptionsForSave();
+    const criteriaForSave = getCriteriaForSave();
+
+    if (hasDuplicateNameInList(optionsForSave.map((option) => option.name))) {
+      setFeedbackMessage('Optionen doppelt.');
+      return;
+    }
+
+    if (hasDuplicateNameInList(criteriaForSave.map((criterion) => criterion.name))) {
+      setFeedbackMessage('Kriterien doppelt.');
       return;
     }
 
@@ -144,11 +168,11 @@ export default function CreateDecisionScreen() {
       const decision = await addDecisionWithDetails({
         title: trimmedTitle,
         description: trimmedDescription,
-        options: getOptionsForSave().map((option) => ({
+        options: optionsForSave.map((option) => ({
           name: option.name,
           note: option.note,
         })),
-        criteria: getCriteriaForSave().map((criterion) => ({
+        criteria: criteriaForSave.map((criterion) => ({
           name: criterion.name,
           weight: criterion.weight,
         })),
@@ -248,7 +272,7 @@ export default function CreateDecisionScreen() {
                     <Ionicons color={theme.colors.primary} name="radio-button-on-outline" size={18} />
                   </View>
                   <View style={styles.itemContent}>
-                    <Text style={styles.itemTitle}>{option.name}</Text>
+                    <Text numberOfLines={2} style={styles.itemTitle}>{option.name}</Text>
                     {option.note.length > 0 ? <Text style={styles.itemText}>{option.note}</Text> : null}
                   </View>
                   <IconButton
@@ -314,7 +338,7 @@ export default function CreateDecisionScreen() {
                     <Ionicons color={theme.colors.primary} name="speedometer-outline" size={18} />
                   </View>
                   <View style={styles.itemContent}>
-                    <Text style={styles.itemTitle}>{criterion.name}</Text>
+                    <Text numberOfLines={2} style={styles.itemTitle}>{criterion.name}</Text>
                     <Text style={styles.itemText}>Gewichtung {criterion.weight}</Text>
                   </View>
                   <IconButton
