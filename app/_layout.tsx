@@ -4,22 +4,24 @@ import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import 'react-native-reanimated';
 
-import { AppTheme } from '@/constants/theme';
+import { useAppTheme } from '@/constants/theme';
 import { DecisionProvider } from '@/contexts/decision-context';
 
-const navigationTheme = {
-  ...DefaultTheme,
-  colors: {
-    ...DefaultTheme.colors,
-    background: AppTheme.colors.surface,
-    border: AppTheme.colors.borderSoft,
-    card: AppTheme.colors.surfaceRaised,
-    primary: AppTheme.colors.primary,
-    text: AppTheme.colors.text,
-  },
-};
-
 export default function RootLayout() {
+  const appTheme = useAppTheme();
+  const navigationTheme = {
+    ...DefaultTheme,
+    dark: appTheme.isDark,
+    colors: {
+      ...DefaultTheme.colors,
+      background: appTheme.colors.surface,
+      border: appTheme.colors.borderSoft,
+      card: appTheme.colors.surfaceRaised,
+      primary: appTheme.colors.primary,
+      text: appTheme.colors.text,
+    },
+  };
+
   return (
     <SafeAreaProvider>
       <ThemeProvider value={navigationTheme}>
@@ -51,7 +53,7 @@ export default function RootLayout() {
               }}
             />
           </Stack>
-          <StatusBar style="dark" />
+          <StatusBar style={appTheme.isDark ? 'light' : 'dark'} />
         </DecisionProvider>
       </ThemeProvider>
     </SafeAreaProvider>

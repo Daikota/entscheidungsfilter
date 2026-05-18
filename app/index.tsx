@@ -2,7 +2,7 @@ import { Link } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { AppTheme } from '@/constants/theme';
+import { AppThemeValues, useAppTheme } from '@/constants/theme';
 import { useDecisions } from '@/contexts/decision-context';
 
 const formatDateTime = (value: string) => {
@@ -17,6 +17,8 @@ const formatDateTime = (value: string) => {
 };
 
 export default function HomeScreen() {
+  const theme = useAppTheme();
+  const styles = createStyles(theme);
   const { decisions, databaseError, isDatabaseReady } = useDecisions();
   const insets = useSafeAreaInsets();
   const footerBottomPadding = Math.max(insets.bottom + 12, 28);
@@ -90,10 +92,10 @@ export default function HomeScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: AppThemeValues) => StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: AppTheme.colors.surface,
+    backgroundColor: theme.colors.surface,
   },
   contentArea: {
     flex: 1,
@@ -101,34 +103,34 @@ const styles = StyleSheet.create({
   content: {
     gap: 28,
     paddingBottom: 24,
-    paddingHorizontal: AppTheme.spacing.screenX,
+    paddingHorizontal: theme.spacing.screenX,
     paddingTop: 56,
   },
   header: {
     gap: 12,
   },
   title: {
-    color: AppTheme.colors.text,
+    color: theme.colors.text,
     fontSize: 32,
     fontWeight: '700',
   },
   subtitle: {
-    color: AppTheme.colors.textSecondary,
+    color: theme.colors.textSecondary,
     fontSize: 17,
     lineHeight: 24,
   },
   emptyState: {
     alignItems: 'center',
-    backgroundColor: AppTheme.colors.surfaceRaised,
-    borderColor: AppTheme.colors.border,
-    borderRadius: AppTheme.radius.sm,
+    backgroundColor: theme.colors.surfaceRaised,
+    borderColor: theme.colors.border,
+    borderRadius: theme.radius.md,
     borderWidth: 1,
     justifyContent: 'center',
     minHeight: 260,
     padding: 24,
   },
   emptyTitle: {
-    color: AppTheme.colors.textStrong,
+    color: theme.colors.textStrong,
     fontSize: 20,
     fontWeight: '600',
     textAlign: 'center',
@@ -138,19 +140,20 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
   },
   decisionCard: {
-    backgroundColor: AppTheme.colors.surfaceRaised,
-    borderColor: AppTheme.colors.border,
-    borderRadius: AppTheme.radius.sm,
+    backgroundColor: theme.colors.surfaceRaised,
+    borderColor: theme.colors.border,
+    borderRadius: theme.radius.md,
     borderWidth: 1,
     gap: 12,
     minHeight: 96,
     padding: 16,
+    ...theme.shadow.card,
   },
   decisionCardPressed: {
-    backgroundColor: AppTheme.colors.surfacePressed,
+    backgroundColor: theme.colors.surfacePressed,
   },
   decisionTitle: {
-    color: AppTheme.colors.text,
+    color: theme.colors.text,
     fontSize: 19,
     fontWeight: '700',
   },
@@ -158,31 +161,32 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   metaText: {
-    color: AppTheme.colors.textSecondary,
+    color: theme.colors.textSecondary,
     fontSize: 14,
     lineHeight: 20,
   },
   actionBar: {
-    backgroundColor: AppTheme.colors.surface,
-    borderTopColor: AppTheme.colors.borderSoft,
+    backgroundColor: theme.colors.surface,
+    borderTopColor: theme.colors.borderSoft,
     borderTopWidth: 1,
-    paddingHorizontal: AppTheme.spacing.screenX,
+    paddingHorizontal: theme.spacing.screenX,
     paddingTop: 16,
+    ...theme.shadow.footer,
   },
   button: {
     alignItems: 'center',
-    backgroundColor: AppTheme.colors.primary,
-    borderRadius: AppTheme.radius.sm,
+    backgroundColor: theme.colors.primary,
+    borderRadius: theme.radius.sm,
     minHeight: 60,
     justifyContent: 'center',
     paddingHorizontal: 24,
     width: '100%',
   },
   buttonPressed: {
-    backgroundColor: AppTheme.colors.primaryPressed,
+    backgroundColor: theme.colors.primaryPressed,
   },
   buttonText: {
-    color: AppTheme.colors.onPrimary,
+    color: theme.colors.onPrimary,
     fontSize: 18,
     fontWeight: '700',
   },

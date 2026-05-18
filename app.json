@@ -2,7 +2,7 @@
   "expo": {
     "name": "entscheidungsfilter",
     "slug": "entscheidungsfilter",
-    "version": "0.7.2",
+    "version": "0.8.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "entscheidungsfilter",
@@ -33,9 +33,9 @@
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#ffffff",
+          "backgroundColor": "#FEFDFF",
           "dark": {
-            "backgroundColor": "#000000"
+            "backgroundColor": "#2C2B3C"
           }
         }
       ],

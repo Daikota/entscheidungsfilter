@@ -3,13 +3,15 @@ import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { AppTheme } from '@/constants/theme';
+import { AppThemeValues, useAppTheme } from '@/constants/theme';
 import { useDecisions } from '@/contexts/decision-context';
 import { CriterionWeight } from '@/types/decision';
 
 const criterionWeights: CriterionWeight[] = [1, 2, 3];
 
 export default function DecisionDetailScreen() {
+  const theme = useAppTheme();
+  const styles = createStyles(theme);
   const { id } = useLocalSearchParams<{ id: string }>();
   const {
     decisions,
@@ -155,7 +157,7 @@ export default function DecisionDetailScreen() {
                 accessibilityLabel="Name der Option"
                 onChangeText={setOptionName}
                 placeholder="Name der Option"
-                placeholderTextColor={AppTheme.colors.textMuted}
+                placeholderTextColor={theme.colors.textMuted}
                 style={[styles.input, optionError.length > 0 && styles.inputError]}
                 value={optionName}
               />
@@ -164,7 +166,7 @@ export default function DecisionDetailScreen() {
                 multiline
                 onChangeText={setOptionNote}
                 placeholder="Notiz optional"
-                placeholderTextColor={AppTheme.colors.textMuted}
+                placeholderTextColor={theme.colors.textMuted}
                 style={[styles.input, styles.textArea]}
                 textAlignVertical="top"
                 value={optionNote}
@@ -235,7 +237,7 @@ export default function DecisionDetailScreen() {
                 accessibilityLabel="Name des Kriteriums"
                 onChangeText={setCriterionName}
                 placeholder="Name des Kriteriums"
-                placeholderTextColor={AppTheme.colors.textMuted}
+                placeholderTextColor={theme.colors.textMuted}
                 style={[styles.input, criterionError.length > 0 && styles.inputError]}
                 value={criterionName}
               />
@@ -321,26 +323,26 @@ export default function DecisionDetailScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: AppThemeValues) => StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: AppTheme.colors.surface,
+    backgroundColor: theme.colors.surface,
   },
   content: {
     gap: 24,
-    paddingHorizontal: AppTheme.spacing.screenX,
+    paddingHorizontal: theme.spacing.screenX,
     paddingTop: 32,
   },
   header: {
     gap: 12,
   },
   title: {
-    color: AppTheme.colors.text,
+    color: theme.colors.text,
     fontSize: 30,
     fontWeight: '700',
   },
   description: {
-    color: AppTheme.colors.textSecondary,
+    color: theme.colors.textSecondary,
     fontSize: 17,
     lineHeight: 24,
   },
@@ -354,46 +356,47 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   sectionTitle: {
-    color: AppTheme.colors.text,
+    color: theme.colors.text,
     flex: 1,
     fontSize: 22,
     fontWeight: '700',
   },
   formCard: {
-    backgroundColor: AppTheme.colors.surfaceRaised,
-    borderColor: AppTheme.colors.border,
-    borderRadius: AppTheme.radius.sm,
+    backgroundColor: theme.colors.surfaceRaised,
+    borderColor: theme.colors.border,
+    borderRadius: theme.radius.md,
     borderWidth: 1,
     gap: 12,
     padding: 16,
+    ...theme.shadow.card,
   },
   input: {
-    backgroundColor: AppTheme.colors.surfaceRaised,
-    borderColor: AppTheme.colors.border,
-    borderRadius: AppTheme.radius.sm,
+    backgroundColor: theme.colors.surfaceRaised,
+    borderColor: theme.colors.border,
+    borderRadius: theme.radius.md,
     borderWidth: 1,
-    color: AppTheme.colors.text,
+    color: theme.colors.text,
     fontSize: 16,
     minHeight: 52,
     paddingHorizontal: 14,
     paddingVertical: 12,
   },
   inputError: {
-    borderColor: AppTheme.colors.danger,
+    borderColor: theme.colors.danger,
   },
   textArea: {
     minHeight: 96,
   },
   errorText: {
-    color: AppTheme.colors.danger,
+    color: theme.colors.danger,
     fontSize: 14,
     lineHeight: 20,
   },
   emptyState: {
     alignItems: 'center',
-    backgroundColor: AppTheme.colors.surfaceRaised,
-    borderColor: AppTheme.colors.border,
-    borderRadius: AppTheme.radius.sm,
+    backgroundColor: theme.colors.surfaceRaised,
+    borderColor: theme.colors.border,
+    borderRadius: theme.radius.md,
     borderWidth: 1,
     gap: 8,
     justifyContent: 'center',
@@ -401,13 +404,13 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   emptyTitle: {
-    color: AppTheme.colors.textStrong,
+    color: theme.colors.textStrong,
     fontSize: 18,
     fontWeight: '700',
     textAlign: 'center',
   },
   emptyText: {
-    color: AppTheme.colors.textSecondary,
+    color: theme.colors.textSecondary,
     fontSize: 15,
     lineHeight: 21,
     textAlign: 'center',
@@ -417,80 +420,81 @@ const styles = StyleSheet.create({
   },
   itemCard: {
     alignItems: 'center',
-    backgroundColor: AppTheme.colors.surfaceRaised,
-    borderColor: AppTheme.colors.border,
-    borderRadius: AppTheme.radius.sm,
+    backgroundColor: theme.colors.surfaceRaised,
+    borderColor: theme.colors.border,
+    borderRadius: theme.radius.sm,
     borderWidth: 1,
     flexDirection: 'row',
     gap: 12,
     padding: 14,
+    ...theme.shadow.card,
   },
   itemContent: {
     flex: 1,
     gap: 4,
   },
   itemTitle: {
-    color: AppTheme.colors.text,
+    color: theme.colors.text,
     fontSize: 17,
     fontWeight: '700',
   },
   itemText: {
-    color: AppTheme.colors.textSecondary,
+    color: theme.colors.textSecondary,
     fontSize: 14,
     lineHeight: 20,
   },
   primaryButton: {
     alignItems: 'center',
-    backgroundColor: AppTheme.colors.primary,
-    borderRadius: AppTheme.radius.sm,
+    backgroundColor: theme.colors.primary,
+    borderRadius: theme.radius.sm,
     justifyContent: 'center',
-    minHeight: AppTheme.touch.primary,
+    minHeight: theme.touch.primary,
     paddingHorizontal: 20,
     paddingVertical: 14,
   },
   primaryButtonPressed: {
-    backgroundColor: AppTheme.colors.primaryPressed,
+    backgroundColor: theme.colors.primaryPressed,
   },
   primaryButtonText: {
-    color: AppTheme.colors.onPrimary,
+    color: theme.colors.onPrimary,
     fontSize: 17,
     fontWeight: '700',
     textAlign: 'center',
   },
   secondaryButton: {
     alignItems: 'center',
-    backgroundColor: AppTheme.colors.primarySoft,
-    borderColor: AppTheme.colors.primaryBorder,
-    borderRadius: AppTheme.radius.sm,
+    backgroundColor: theme.colors.primarySoft,
+    borderColor: theme.colors.primaryBorder,
+    borderRadius: theme.radius.sm,
     borderWidth: 1,
     justifyContent: 'center',
-    minHeight: AppTheme.touch.min,
+    minHeight: theme.touch.min,
     paddingHorizontal: 12,
   },
   secondaryButtonPressed: {
-    backgroundColor: AppTheme.colors.primarySoftPressed,
+    backgroundColor: theme.colors.primarySoftPressed,
   },
   secondaryButtonText: {
-    color: AppTheme.colors.info,
+    color: theme.colors.info,
     fontSize: 14,
     fontWeight: '700',
     textAlign: 'center',
   },
   deleteButton: {
     alignItems: 'center',
-    backgroundColor: AppTheme.colors.dangerSoft,
-    borderColor: AppTheme.colors.dangerBorder,
-    borderRadius: AppTheme.radius.sm,
+    backgroundColor: theme.colors.dangerSoft,
+    borderColor: theme.colors.dangerBorder,
+    borderRadius: theme.radius.sm,
     borderWidth: 1,
     justifyContent: 'center',
-    minHeight: AppTheme.touch.min,
+    minHeight: theme.touch.min,
     paddingHorizontal: 12,
   },
   deleteButtonPressed: {
-    backgroundColor: AppTheme.colors.dangerSoftPressed,
+    backgroundColor: theme.colors.dangerSoftPressed,
   },
   deleteButtonText: {
-    color: AppTheme.colors.dangerStrong,
+    color: theme.colors.dangerStrong,
     fontSize: 14,
     fontWeight: '700',
   },
@@ -498,7 +502,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   weightLabel: {
-    color: AppTheme.colors.textStrong,
+    color: theme.colors.textStrong,
     fontSize: 15,
     fontWeight: '700',
   },
@@ -508,47 +512,48 @@ const styles = StyleSheet.create({
   },
   weightButton: {
     alignItems: 'center',
-    backgroundColor: AppTheme.colors.surfaceRaised,
-    borderColor: AppTheme.colors.border,
-    borderRadius: AppTheme.radius.sm,
+    backgroundColor: theme.colors.surfaceRaised,
+    borderColor: theme.colors.border,
+    borderRadius: theme.radius.sm,
     borderWidth: 1,
     flex: 1,
     justifyContent: 'center',
-    minHeight: AppTheme.touch.min,
+    minHeight: theme.touch.min,
   },
   weightButtonSelected: {
-    backgroundColor: AppTheme.colors.primary,
-    borderColor: AppTheme.colors.primary,
+    backgroundColor: theme.colors.primary,
+    borderColor: theme.colors.primary,
   },
   weightButtonText: {
-    color: AppTheme.colors.textStrong,
+    color: theme.colors.textStrong,
     fontSize: 16,
     fontWeight: '700',
   },
   weightButtonTextSelected: {
-    color: AppTheme.colors.onPrimary,
+    color: theme.colors.onPrimary,
   },
   actionBar: {
-    backgroundColor: AppTheme.colors.surface,
-    borderTopColor: AppTheme.colors.borderSoft,
+    backgroundColor: theme.colors.surface,
+    borderTopColor: theme.colors.borderSoft,
     borderTopWidth: 1,
-    paddingHorizontal: AppTheme.spacing.screenX,
+    paddingHorizontal: theme.spacing.screenX,
     paddingTop: 16,
+    ...theme.shadow.footer,
   },
   notFoundContent: {
     flex: 1,
     gap: 16,
     justifyContent: 'center',
-    paddingHorizontal: AppTheme.spacing.screenX,
+    paddingHorizontal: theme.spacing.screenX,
   },
   notFoundTitle: {
-    color: AppTheme.colors.text,
+    color: theme.colors.text,
     fontSize: 24,
     fontWeight: '700',
     textAlign: 'center',
   },
   notFoundText: {
-    color: AppTheme.colors.textSecondary,
+    color: theme.colors.textSecondary,
     fontSize: 16,
     lineHeight: 23,
     textAlign: 'center',
