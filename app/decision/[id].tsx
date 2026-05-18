@@ -12,6 +12,8 @@ export default function DecisionDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const {
     decisions,
+    databaseError,
+    isDatabaseReady,
     addOption,
     deleteOption,
     addCriterion,
@@ -28,6 +30,26 @@ export default function DecisionDetailScreen() {
   const [criterionName, setCriterionName] = useState('');
   const [criterionWeight, setCriterionWeight] = useState<CriterionWeight>(2);
   const [criterionError, setCriterionError] = useState('');
+
+  if (!isDatabaseReady) {
+    return (
+      <View style={styles.screen}>
+        <View style={styles.notFoundContent}>
+          <Text style={styles.notFoundTitle}>Entscheidung wird geladen</Text>
+        </View>
+      </View>
+    );
+  }
+
+  if (databaseError.length > 0) {
+    return (
+      <View style={styles.screen}>
+        <View style={styles.notFoundContent}>
+          <Text style={styles.notFoundTitle}>{databaseError}</Text>
+        </View>
+      </View>
+    );
+  }
 
   if (decision === undefined) {
     return (
@@ -50,7 +72,7 @@ export default function DecisionDetailScreen() {
     );
   }
 
-  const handleAddOption = () => {
+  const handleAddOption = async () => {
     const trimmedName = optionName.trim();
     const trimmedNote = optionNote.trim();
 
@@ -59,18 +81,23 @@ export default function DecisionDetailScreen() {
       return;
     }
 
-    addOption({
-      decisionId: decision.id,
-      name: trimmedName,
-      note: trimmedNote,
-    });
-    setOptionName('');
-    setOptionNote('');
-    setOptionError('');
-    setIsOptionFormVisible(false);
+    try {
+      await addOption({
+        decisionId: decision.id,
+        name: trimmedName,
+        note: trimmedNote,
+      });
+      setOptionName('');
+      setOptionNote('');
+      setOptionError('');
+      setIsOptionFormVisible(false);
+    } catch (error) {
+      console.error('Failed to save option', error);
+      setOptionError('Die Option konnte nicht gespeichert werden.');
+    }
   };
 
-  const handleAddCriterion = () => {
+  const handleAddCriterion = async () => {
     const trimmedName = criterionName.trim();
 
     if (trimmedName.length === 0) {
@@ -78,15 +105,20 @@ export default function DecisionDetailScreen() {
       return;
     }
 
-    addCriterion({
-      decisionId: decision.id,
-      name: trimmedName,
-      weight: criterionWeight,
-    });
-    setCriterionName('');
-    setCriterionWeight(2);
-    setCriterionError('');
-    setIsCriterionFormVisible(false);
+    try {
+      await addCriterion({
+        decisionId: decision.id,
+        name: trimmedName,
+        weight: criterionWeight,
+      });
+      setCriterionName('');
+      setCriterionWeight(2);
+      setCriterionError('');
+      setIsCriterionFormVisible(false);
+    } catch (error) {
+      console.error('Failed to save criterion', error);
+      setCriterionError('Das Kriterium konnte nicht gespeichert werden.');
+    }
   };
 
   return (
@@ -166,7 +198,11 @@ export default function DecisionDetailScreen() {
                   <Pressable
                     accessibilityRole="button"
                     accessibilityLabel={`Option ${option.name} löschen`}
-                    onPress={() => deleteOption(decision.id, option.id)}
+                    onPress={() => {
+                      deleteOption(decision.id, option.id).catch((error) => {
+                        console.error('Failed to delete option', error);
+                      });
+                    }}
                     style={({ pressed }) => [styles.deleteButton, pressed && styles.deleteButtonPressed]}>
                     <Text style={styles.deleteButtonText}>Löschen</Text>
                   </Pressable>
@@ -256,7 +292,11 @@ export default function DecisionDetailScreen() {
                   <Pressable
                     accessibilityRole="button"
                     accessibilityLabel={`Kriterium ${criterion.name} löschen`}
-                    onPress={() => deleteCriterion(decision.id, criterion.id)}
+                    onPress={() => {
+                      deleteCriterion(decision.id, criterion.id).catch((error) => {
+                        console.error('Failed to delete criterion', error);
+                      });
+                    }}
                     style={({ pressed }) => [styles.deleteButton, pressed && styles.deleteButtonPressed]}>
                     <Text style={styles.deleteButtonText}>Löschen</Text>
                   </Pressable>

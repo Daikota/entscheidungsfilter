@@ -16,7 +16,7 @@ const formatDateTime = (value: string) => {
 };
 
 export default function HomeScreen() {
-  const { decisions } = useDecisions();
+  const { decisions, databaseError, isDatabaseReady } = useDecisions();
   const insets = useSafeAreaInsets();
   const footerBottomPadding = Math.max(insets.bottom + 12, 28);
 
@@ -33,7 +33,15 @@ export default function HomeScreen() {
           </Text>
         </View>
 
-        {decisions.length === 0 ? (
+        {!isDatabaseReady ? (
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyTitle}>Entscheidungen werden geladen</Text>
+          </View>
+        ) : databaseError.length > 0 ? (
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyTitle}>{databaseError}</Text>
+          </View>
+        ) : decisions.length === 0 ? (
           <View style={styles.emptyState}>
             <Text style={styles.emptyTitle}>Noch keine Entscheidungen</Text>
           </View>

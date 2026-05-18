@@ -1,4 +1,5 @@
 import { Link, useLocalSearchParams } from 'expo-router';
+import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -10,9 +11,30 @@ const ratingScores: RatingScore[] = [1, 2, 3, 4, 5];
 
 export default function DecisionRatingsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { decisions, setRating } = useDecisions();
+  const { decisions, databaseError, isDatabaseReady, setRating } = useDecisions();
   const insets = useSafeAreaInsets();
   const decision = decisions.find((currentDecision) => currentDecision.id === id);
+  const [screenError, setScreenError] = useState('');
+
+  if (!isDatabaseReady) {
+    return (
+      <View style={styles.screen}>
+        <View style={styles.messageContent}>
+          <Text style={styles.messageTitle}>Bewertung wird geladen</Text>
+        </View>
+      </View>
+    );
+  }
+
+  if (databaseError.length > 0) {
+    return (
+      <View style={styles.screen}>
+        <View style={styles.messageContent}>
+          <Text style={styles.messageTitle}>{databaseError}</Text>
+        </View>
+      </View>
+    );
+  }
 
   if (decision === undefined) {
     return (
@@ -46,6 +68,13 @@ export default function DecisionRatingsScreen() {
         <Text style={styles.title}>Bewertung</Text>
         <Text style={styles.subtitle}>{decision.title}</Text>
       </View>
+      {screenError.length > 0 ? (
+        <View style={styles.errorBox}>
+          <Text accessibilityRole="alert" style={styles.errorText}>
+            {screenError}
+          </Text>
+        </View>
+      ) : null}
 
       {hasMissingSetup ? (
         <View style={styles.emptyState}>
@@ -84,14 +113,19 @@ export default function DecisionRatingsScreen() {
                                 accessibilityRole="button"
                                 accessibilityState={{ selected: isSelected }}
                                 accessibilityLabel={`${score} Punkte für ${option.name} bei ${criterion.name}`}
-                                onPress={() =>
+                                onPress={() => {
                                   setRating({
                                     decisionId: decision.id,
                                     optionId: option.id,
                                     criterionId: criterion.id,
                                     score,
                                   })
-                                }
+                                    .then(() => setScreenError(''))
+                                    .catch((error) => {
+                                      console.error('Failed to save rating', error);
+                                      setScreenError('Die Bewertung konnte nicht gespeichert werden.');
+                                    });
+                                }}
                                 style={[
                                   styles.scoreButton,
                                   isSelected && styles.scoreButtonSelected,
@@ -288,6 +322,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     minHeight: 180,
     padding: 20,
+  },
+  errorBox: {
+    backgroundColor: '#FFF1F2',
+    borderColor: '#FECDD3',
+    borderRadius: 8,
+    borderWidth: 1,
+    padding: 14,
+  },
+  errorText: {
+    color: '#B91C1C',
+    fontSize: 14,
+    lineHeight: 20,
   },
   emptyTitle: {
     color: '#2D3748',

@@ -1,5 +1,14 @@
-import { createContext, PropsWithChildren, useCallback, useContext, useState } from 'react';
+import { createContext, PropsWithChildren, useCallback, useContext, useEffect, useState } from 'react';
 
+import {
+  deleteCriterionFromDatabase,
+  deleteOptionFromDatabase,
+  insertCriterion,
+  insertDecision,
+  insertOption,
+  loadDecisionsFromDatabase,
+  upsertRating,
+} from '@/database/decision-repository';
 import {
   CreateDecisionCriterionInput,
   CreateDecisionInput,
@@ -12,12 +21,14 @@ import {
 
 type DecisionContextValue = {
   decisions: Decision[];
-  addDecision: (input: CreateDecisionInput) => Decision;
-  addOption: (input: CreateDecisionOptionInput) => DecisionOption;
-  deleteOption: (decisionId: string, optionId: string) => void;
-  addCriterion: (input: CreateDecisionCriterionInput) => DecisionCriterion;
-  deleteCriterion: (decisionId: string, criterionId: string) => void;
-  setRating: (input: SetDecisionRatingInput) => void;
+  databaseError: string;
+  isDatabaseReady: boolean;
+  addDecision: (input: CreateDecisionInput) => Promise<Decision>;
+  addOption: (input: CreateDecisionOptionInput) => Promise<DecisionOption>;
+  deleteOption: (decisionId: string, optionId: string) => Promise<void>;
+  addCriterion: (input: CreateDecisionCriterionInput) => Promise<DecisionCriterion>;
+  deleteCriterion: (decisionId: string, criterionId: string) => Promise<void>;
+  setRating: (input: SetDecisionRatingInput) => Promise<void>;
 };
 
 const DecisionContext = createContext<DecisionContextValue | null>(null);
@@ -27,8 +38,41 @@ const createChildId = (prefix: string) => `${prefix}-${Date.now()}-${Math.random
 
 export function DecisionProvider({ children }: PropsWithChildren) {
   const [decisions, setDecisions] = useState<Decision[]>([]);
+  const [isDatabaseReady, setIsDatabaseReady] = useState(false);
+  const [databaseError, setDatabaseError] = useState('');
 
-  const addDecision = useCallback((input: CreateDecisionInput) => {
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadPersistedDecisions() {
+      try {
+        const persistedDecisions = await loadDecisionsFromDatabase();
+
+        if (isMounted) {
+          setDecisions(persistedDecisions);
+          setDatabaseError('');
+        }
+      } catch (error) {
+        console.error('Failed to load decisions from SQLite', error);
+
+        if (isMounted) {
+          setDatabaseError('Daten konnten nicht geladen werden.');
+        }
+      } finally {
+        if (isMounted) {
+          setIsDatabaseReady(true);
+        }
+      }
+    }
+
+    loadPersistedDecisions();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const addDecision = useCallback(async (input: CreateDecisionInput) => {
     const now = new Date().toISOString();
     const decision: Decision = {
       id: createDecisionId(),
@@ -41,11 +85,12 @@ export function DecisionProvider({ children }: PropsWithChildren) {
       updatedAt: now,
     };
 
+    await insertDecision(decision);
     setDecisions((currentDecisions) => [decision, ...currentDecisions]);
     return decision;
   }, []);
 
-  const addOption = useCallback((input: CreateDecisionOptionInput) => {
+  const addOption = useCallback(async (input: CreateDecisionOptionInput) => {
     const now = new Date().toISOString();
     const option: DecisionOption = {
       id: createChildId('option'),
@@ -54,6 +99,7 @@ export function DecisionProvider({ children }: PropsWithChildren) {
       createdAt: now,
     };
 
+    await insertOption(input.decisionId, option, now);
     setDecisions((currentDecisions) =>
       currentDecisions.map((decision) =>
         decision.id === input.decisionId
@@ -69,9 +115,10 @@ export function DecisionProvider({ children }: PropsWithChildren) {
     return option;
   }, []);
 
-  const deleteOption = useCallback((decisionId: string, optionId: string) => {
+  const deleteOption = useCallback(async (decisionId: string, optionId: string) => {
     const now = new Date().toISOString();
 
+    await deleteOptionFromDatabase(decisionId, optionId, now);
     setDecisions((currentDecisions) =>
       currentDecisions.map((decision) =>
         decision.id === decisionId
@@ -86,7 +133,7 @@ export function DecisionProvider({ children }: PropsWithChildren) {
     );
   }, []);
 
-  const addCriterion = useCallback((input: CreateDecisionCriterionInput) => {
+  const addCriterion = useCallback(async (input: CreateDecisionCriterionInput) => {
     const now = new Date().toISOString();
     const criterion: DecisionCriterion = {
       id: createChildId('criterion'),
@@ -95,6 +142,7 @@ export function DecisionProvider({ children }: PropsWithChildren) {
       createdAt: now,
     };
 
+    await insertCriterion(input.decisionId, criterion, now);
     setDecisions((currentDecisions) =>
       currentDecisions.map((decision) =>
         decision.id === input.decisionId
@@ -110,9 +158,10 @@ export function DecisionProvider({ children }: PropsWithChildren) {
     return criterion;
   }, []);
 
-  const deleteCriterion = useCallback((decisionId: string, criterionId: string) => {
+  const deleteCriterion = useCallback(async (decisionId: string, criterionId: string) => {
     const now = new Date().toISOString();
 
+    await deleteCriterionFromDatabase(decisionId, criterionId, now);
     setDecisions((currentDecisions) =>
       currentDecisions.map((decision) =>
         decision.id === decisionId
@@ -127,9 +176,23 @@ export function DecisionProvider({ children }: PropsWithChildren) {
     );
   }, []);
 
-  const setRating = useCallback((input: SetDecisionRatingInput) => {
+  const setRating = useCallback(async (input: SetDecisionRatingInput) => {
     const now = new Date().toISOString();
+    const currentDecision = decisions.find((decision) => decision.id === input.decisionId);
+    const existingRating = currentDecision?.ratings.find(
+      (rating) => rating.optionId === input.optionId && rating.criterionId === input.criterionId
+    );
+    const nextRating = {
+      id: existingRating?.id ?? createChildId('rating'),
+      decisionId: input.decisionId,
+      optionId: input.optionId,
+      criterionId: input.criterionId,
+      score: input.score,
+      createdAt: existingRating?.createdAt ?? now,
+      updatedAt: now,
+    };
 
+    await upsertRating(nextRating);
     setDecisions((currentDecisions) =>
       currentDecisions.map((decision) => {
         if (decision.id !== input.decisionId) {
@@ -140,11 +203,6 @@ export function DecisionProvider({ children }: PropsWithChildren) {
           (rating) =>
             rating.optionId === input.optionId && rating.criterionId === input.criterionId
         );
-        const nextRating = {
-          optionId: input.optionId,
-          criterionId: input.criterionId,
-          score: input.score,
-        };
         const nextRatings =
           existingRatingIndex === -1
             ? [...decision.ratings, nextRating]
@@ -159,12 +217,14 @@ export function DecisionProvider({ children }: PropsWithChildren) {
         };
       })
     );
-  }, []);
+  }, [decisions]);
 
   return (
     <DecisionContext.Provider
       value={{
         decisions,
+        databaseError,
+        isDatabaseReady,
         addDecision,
         addOption,
         deleteOption,

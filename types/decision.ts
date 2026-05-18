@@ -17,9 +17,13 @@ export type DecisionCriterion = {
 export type RatingScore = 1 | 2 | 3 | 4 | 5;
 
 export type DecisionRating = {
+  id: string;
+  decisionId: string;
   optionId: string;
   criterionId: string;
   score: RatingScore;
+  createdAt: string;
+  updatedAt: string;
 };
 
 export type DecisionResult = {

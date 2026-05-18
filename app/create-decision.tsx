@@ -12,7 +12,7 @@ export default function CreateDecisionScreen() {
   const [feedbackMessage, setFeedbackMessage] = useState('');
   const [isSaving, setIsSaving] = useState(false);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const trimmedTitle = title.trim();
     const trimmedDescription = description.trim();
 
@@ -24,16 +24,22 @@ export default function CreateDecisionScreen() {
     setIsSaving(true);
     setFeedbackMessage('');
 
-    const decision = addDecision({
-      title: trimmedTitle,
-      description: trimmedDescription,
-    });
+    try {
+      const decision = await addDecision({
+        title: trimmedTitle,
+        description: trimmedDescription,
+      });
 
-    console.log('Created local decision', decision);
+      console.log('Created persisted decision', decision);
 
-    setTimeout(() => {
-      router.replace('/');
-    }, 250);
+      setTimeout(() => {
+        router.replace('/');
+      }, 250);
+    } catch (error) {
+      console.error('Failed to save decision', error);
+      setFeedbackMessage('Die Entscheidung konnte nicht gespeichert werden.');
+      setIsSaving(false);
+    }
   };
 
   return (
