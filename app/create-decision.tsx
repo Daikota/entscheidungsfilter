@@ -1,21 +1,45 @@
 import { useState } from 'react';
+import { useRouter } from 'expo-router';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
+type LocalDecision = {
+  title: string;
+  description: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
 export default function CreateDecisionScreen() {
+  const router = useRouter();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [feedbackMessage, setFeedbackMessage] = useState('');
-  const [feedbackType, setFeedbackType] = useState<'error' | 'success' | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   const handleSave = () => {
-    if (title.trim().length === 0) {
-      setFeedbackType('error');
+    const trimmedTitle = title.trim();
+    const trimmedDescription = description.trim();
+
+    if (trimmedTitle.length === 0) {
       setFeedbackMessage('Bitte gib einen Titel ein.');
       return;
     }
 
-    setFeedbackType('success');
-    setFeedbackMessage('Entscheidung ist bereit. Speicherung folgt in einer späteren Version.');
+    const now = new Date().toISOString();
+    const decision: LocalDecision = {
+      title: trimmedTitle,
+      description: trimmedDescription,
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    setIsSaving(true);
+    setFeedbackMessage('');
+    console.log('Created local decision draft', decision);
+
+    setTimeout(() => {
+      router.replace('/');
+    }, 250);
   };
 
   return (
@@ -30,7 +54,7 @@ export default function CreateDecisionScreen() {
           onChangeText={setTitle}
           placeholder="Titel der Entscheidung"
           placeholderTextColor="#7B8794"
-          style={[styles.input, feedbackType === 'error' && styles.inputError]}
+          style={[styles.input, feedbackMessage.length > 0 && styles.inputError]}
           value={title}
         />
         <TextInput
@@ -45,19 +69,23 @@ export default function CreateDecisionScreen() {
         />
 
         {feedbackMessage.length > 0 ? (
-          <Text
-            accessibilityRole="alert"
-            style={feedbackType === 'error' ? styles.errorText : styles.successText}>
+          <Text accessibilityRole="alert" style={styles.errorText}>
             {feedbackMessage}
           </Text>
         ) : null}
       </View>
 
       <Pressable
+        accessibilityState={{ disabled: isSaving }}
+        disabled={isSaving}
         accessibilityRole="button"
         onPress={handleSave}
-        style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}>
-        <Text style={styles.buttonText}>Speichern</Text>
+        style={({ pressed }) => [
+          styles.button,
+          pressed && !isSaving && styles.buttonPressed,
+          isSaving && styles.buttonDisabled,
+        ]}>
+        <Text style={styles.buttonText}>{isSaving ? 'Speichern...' : 'Speichern'}</Text>
       </Pressable>
     </View>
   );
@@ -104,11 +132,6 @@ const styles = StyleSheet.create({
     fontSize: 15,
     lineHeight: 20,
   },
-  successText: {
-    color: '#047857',
-    fontSize: 15,
-    lineHeight: 20,
-  },
   button: {
     alignItems: 'center',
     backgroundColor: '#2563EB',
@@ -119,6 +142,9 @@ const styles = StyleSheet.create({
   },
   buttonPressed: {
     backgroundColor: '#1D4ED8',
+  },
+  buttonDisabled: {
+    backgroundColor: '#8EA8E8',
   },
   buttonText: {
     color: '#FFFFFF',
