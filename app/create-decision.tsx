@@ -207,6 +207,7 @@ export default function CreateDecisionScreen() {
             hasError={feedbackMessage.length > 0 && title.trim().length === 0}
             onChangeText={setTitle}
             placeholder="z. B. Neuer Laptop"
+            returnKeyType="next"
             value={title}
           />
         </View>
@@ -240,8 +241,11 @@ export default function CreateDecisionScreen() {
           <AppCard style={styles.formCard}>
             <AppInput
               accessibilityLabel="Name der Option"
+              blurOnSubmit={false}
               onChangeText={setOptionName}
+              onSubmitEditing={addDraftOption}
               placeholder="Option hinzufügen"
+              returnKeyType="done"
               value={optionName}
             />
             {isOptionNoteVisible ? (
@@ -298,8 +302,11 @@ export default function CreateDecisionScreen() {
           <AppCard style={styles.formCard}>
             <AppInput
               accessibilityLabel="Name des Kriteriums"
+              blurOnSubmit={false}
               onChangeText={setCriterionName}
+              onSubmitEditing={addDraftCriterion}
               placeholder="Kriterium hinzufügen"
+              returnKeyType="done"
               value={criterionName}
             />
             <View style={styles.weightGroup}>

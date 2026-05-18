@@ -118,7 +118,6 @@ export default function DecisionDetailScreen() {
       setOptionName('');
       setOptionNote('');
       setOptionError('');
-      setIsOptionFormVisible(false);
     } catch (error) {
       console.error('Failed to save option', error);
       setOptionError('Die Option konnte nicht gespeichert werden.');
@@ -239,7 +238,6 @@ export default function DecisionDetailScreen() {
       setCriterionName('');
       setCriterionWeight(2);
       setCriterionError('');
-      setIsCriterionFormVisible(false);
     } catch (error) {
       console.error('Failed to save criterion', error);
       setCriterionError('Das Kriterium konnte nicht gespeichert werden.');
@@ -338,7 +336,9 @@ export default function DecisionDetailScreen() {
                 accessibilityLabel="Entscheidungstitel bearbeiten"
                 hasError={decisionError.length > 0 && editDecisionTitle.trim().length === 0}
                 onChangeText={setEditDecisionTitle}
+                onSubmitEditing={handleUpdateDecision}
                 placeholder="Titel"
+                returnKeyType="done"
                 value={editDecisionTitle}
               />
               <AppInput
@@ -395,9 +395,12 @@ export default function DecisionDetailScreen() {
             <AppCard style={styles.formCard}>
               <AppInput
                 accessibilityLabel="Name der Option"
+                blurOnSubmit={false}
                 hasError={optionError.length > 0}
                 onChangeText={setOptionName}
+                onSubmitEditing={handleAddOption}
                 placeholder="Option"
+                returnKeyType="done"
                 value={optionName}
               />
               <AppInput
@@ -433,7 +436,9 @@ export default function DecisionDetailScreen() {
                         accessibilityLabel="Optionsname bearbeiten"
                         hasError={editOptionError.length > 0 && editOptionName.trim().length === 0}
                         onChangeText={setEditOptionName}
+                        onSubmitEditing={handleUpdateOption}
                         placeholder="Option"
+                        returnKeyType="done"
                         value={editOptionName}
                       />
                       <AppInput
@@ -517,9 +522,12 @@ export default function DecisionDetailScreen() {
             <AppCard style={styles.formCard}>
               <AppInput
                 accessibilityLabel="Name des Kriteriums"
+                blurOnSubmit={false}
                 hasError={criterionError.length > 0}
                 onChangeText={setCriterionName}
+                onSubmitEditing={handleAddCriterion}
                 placeholder="Kriterium"
+                returnKeyType="done"
                 value={criterionName}
               />
               <View style={styles.weightGroup}>
@@ -572,7 +580,9 @@ export default function DecisionDetailScreen() {
                         accessibilityLabel="Kriteriumsname bearbeiten"
                         hasError={editCriterionError.length > 0 && editCriterionName.trim().length === 0}
                         onChangeText={setEditCriterionName}
+                        onSubmitEditing={handleUpdateCriterion}
                         placeholder="Kriterium"
+                        returnKeyType="done"
                         value={editCriterionName}
                       />
                       <View style={styles.weightGroup}>

@@ -89,9 +89,6 @@ export default function HomeScreen() {
                       <Text numberOfLines={2} style={styles.decisionTitle}>
                         {decision.title}
                       </Text>
-                      <Text numberOfLines={1} style={styles.metaText}>
-                        Aktualisiert {formatDateTime(decision.updatedAt)}
-                      </Text>
                     </View>
                     <View style={styles.cardArrow}>
                       <Ionicons color={theme.colors.textSecondary} name="chevron-forward" size={20} />
@@ -99,6 +96,12 @@ export default function HomeScreen() {
                   </View>
                   <View style={styles.cardMetaRow}>
                     <StatPill icon="list-outline" label="Optionen" value={`${decision.options.length}`} />
+                    <StatPill
+                      icon="time-outline"
+                      label="Update"
+                      value={formatDateTime(decision.updatedAt).split(',')[0]}
+                      emphasis={index === 0}
+                    />
                     <StatPill icon="calendar-clear-outline" label="Erstellt" value={formatDateTime(decision.createdAt).split(',')[0]} />
                   </View>
                 </AppCard>
@@ -202,18 +205,12 @@ const createStyles = (theme: AppThemeValues) => StyleSheet.create({
   },
   cardTitleGroup: {
     flex: 1,
-    gap: 5,
   },
   decisionTitle: {
     color: theme.colors.textStrong,
     fontSize: 19,
     fontWeight: '900',
     lineHeight: 24,
-  },
-  metaText: {
-    color: theme.colors.textSecondary,
-    fontSize: 13,
-    lineHeight: 18,
   },
   cardArrow: {
     alignItems: 'center',

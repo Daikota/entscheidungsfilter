@@ -9,7 +9,7 @@ import { AppButton, AppCard, SectionHeader, StatPill } from '@/components/ui/app
 import { AppThemeValues, useAppTheme } from '@/constants/theme';
 import { useDecisions } from '@/contexts/decision-context';
 
-const appVersion = Constants.expoConfig?.version ?? '0.9.6';
+const appVersion = Constants.expoConfig?.version ?? '0.9.7';
 
 export default function SettingsScreen() {
   const theme = useAppTheme();

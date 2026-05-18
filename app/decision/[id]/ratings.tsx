@@ -411,7 +411,7 @@ const createStyles = (theme: AppThemeValues) => StyleSheet.create({
     gap: 12,
   },
   optionCard: {
-    gap: 14,
+    gap: 12,
   },
   optionHeader: {
     alignItems: 'center',
@@ -464,15 +464,15 @@ const createStyles = (theme: AppThemeValues) => StyleSheet.create({
     color: theme.colors.onPrimary,
   },
   criteriaList: {
-    gap: 10,
+    gap: 8,
   },
   ratingBlock: {
     backgroundColor: theme.colors.surfaceTint,
     borderColor: theme.colors.borderSoft,
     borderRadius: theme.radius.lg,
     borderWidth: 1,
-    gap: 10,
-    padding: 12,
+    gap: 8,
+    padding: 10,
   },
   ratingBlockMissing: {
     borderColor: theme.colors.primaryBorder,
@@ -526,7 +526,7 @@ const createStyles = (theme: AppThemeValues) => StyleSheet.create({
   },
   scoreButtons: {
     flexDirection: 'row',
-    gap: 7,
+    gap: 6,
   },
   scoreButton: {
     alignItems: 'center',
