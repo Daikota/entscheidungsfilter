@@ -32,6 +32,17 @@ export type DecisionResult = {
   totalScore: number;
   rank: number;
   label: 'Beste Wahl' | 'Alternative' | 'Niedriger bewertet';
+  completedRatings: number;
+  missingRatings: number;
+  isComplete: boolean;
+};
+
+export type RatingProgress = {
+  completed: number;
+  total: number;
+  missing: number;
+  percentage: number;
+  isComplete: boolean;
 };
 
 export type Decision = {

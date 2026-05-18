@@ -8,7 +8,11 @@ import { AppButton, AppCard, EmptyState, SectionHeader, StatPill } from '@/compo
 import { AppThemeValues, useAppTheme } from '@/constants/theme';
 import { useDecisions } from '@/contexts/decision-context';
 import { RatingScore } from '@/types/decision';
-import { calculateDecisionResults } from '@/utils/decision-results';
+import {
+  calculateDecisionResults,
+  getDecisionRatingProgress,
+  getOptionRatingProgress,
+} from '@/utils/decision-results';
 
 const ratingScores: RatingScore[] = [1, 2, 3, 4, 5];
 
@@ -61,6 +65,8 @@ export default function DecisionRatingsScreen() {
   const hasMissingSetup = decision.options.length === 0 || decision.criteria.length === 0;
   const results = hasMissingSetup ? [] : calculateDecisionResults(decision);
   const maxScore = results.length > 0 ? results[0].totalScore : 0;
+  const ratingProgress = getDecisionRatingProgress(decision);
+  const progressWidth = hasMissingSetup ? 0 : Math.max(ratingProgress.percentage, 4);
 
   return (
     <ScrollView
@@ -75,8 +81,21 @@ export default function DecisionRatingsScreen() {
         <View style={styles.statsRow}>
           <StatPill icon="list-outline" label="Optionen" value={`${decision.options.length}`} emphasis />
           <StatPill icon="options-outline" label="Kriterien" value={`${decision.criteria.length}`} />
-          <StatPill icon="star-outline" label="Skala" value="1-5" />
+          <StatPill icon="checkmark-circle-outline" label="Erledigt" value={`${ratingProgress.completed}/${ratingProgress.total}`} />
         </View>
+        {!hasMissingSetup ? (
+          <View style={styles.progressBox}>
+            <View style={styles.progressTextRow}>
+              <Text style={styles.progressText}>
+                {ratingProgress.completed} von {ratingProgress.total} Bewertungen erledigt
+              </Text>
+              <Text style={styles.progressPercent}>{ratingProgress.percentage}%</Text>
+            </View>
+            <View style={styles.progressTrack}>
+              <View style={[styles.progressFill, { width: `${progressWidth}%` }]} />
+            </View>
+          </View>
+        ) : null}
       </AppCard>
 
       {screenError.length > 0 ? (
@@ -96,85 +115,133 @@ export default function DecisionRatingsScreen() {
       ) : (
         <>
           <View style={styles.section}>
-            <SectionHeader eyebrow="Score" title="Punkte vergeben" />
-            {decision.options.map((option) => (
-              <AppCard key={option.id} style={styles.optionCard}>
-                <View style={styles.optionHeader}>
-                  <View style={styles.optionIcon}>
-                    <Ionicons color={theme.colors.primary} name="cube-outline" size={19} />
+            <SectionHeader
+              eyebrow={ratingProgress.isComplete ? 'Komplett' : 'Offen'}
+              title="Punkte vergeben"
+            />
+            {decision.options.map((option) => {
+              const optionProgress = getOptionRatingProgress(decision, option.id);
+
+              return (
+                <AppCard key={option.id} style={styles.optionCard}>
+                  <View style={styles.optionHeader}>
+                    <View style={styles.optionIcon}>
+                      <Ionicons color={theme.colors.primary} name="cube-outline" size={19} />
+                    </View>
+                    <View style={styles.optionTitleGroup}>
+                      <Text style={styles.optionTitle}>{option.name}</Text>
+                      <Text style={styles.optionProgressText}>
+                        {optionProgress.completed}/{optionProgress.total} bewertet
+                      </Text>
+                    </View>
+                    <View style={[styles.stateBadge, optionProgress.isComplete && styles.stateBadgeDone]}>
+                      <Ionicons
+                        color={optionProgress.isComplete ? theme.colors.onPrimary : theme.colors.warning}
+                        name={optionProgress.isComplete ? 'checkmark' : 'ellipse-outline'}
+                        size={14}
+                      />
+                      <Text
+                        style={[
+                          styles.stateBadgeText,
+                          optionProgress.isComplete && styles.stateBadgeTextDone,
+                        ]}>
+                        {optionProgress.isComplete ? 'Fertig' : `${optionProgress.missing} offen`}
+                      </Text>
+                    </View>
                   </View>
-                  <Text style={styles.optionTitle}>{option.name}</Text>
-                </View>
 
-                <View style={styles.criteriaList}>
-                  {decision.criteria.map((criterion) => {
-                    const selectedRating = decision.ratings.find(
-                      (rating) =>
-                        rating.optionId === option.id && rating.criterionId === criterion.id
-                    );
+                  <View style={styles.criteriaList}>
+                    {decision.criteria.map((criterion) => {
+                      const selectedRating = decision.ratings.find(
+                        (rating) =>
+                          rating.optionId === option.id && rating.criterionId === criterion.id
+                      );
+                      const isMissing = selectedRating === undefined;
 
-                    return (
-                      <View key={criterion.id} style={styles.ratingBlock}>
-                        <View style={styles.ratingHeader}>
-                          <View style={styles.criterionTextGroup}>
-                            <Text style={styles.criterionName}>{criterion.name}</Text>
-                            <Text style={styles.weightText}>Gewichtung {criterion.weight}</Text>
-                          </View>
-                          {selectedRating ? (
-                            <View style={styles.selectedBadge}>
-                              <Text style={styles.selectedBadgeText}>{selectedRating.score}</Text>
+                      return (
+                        <View
+                          key={criterion.id}
+                          style={[styles.ratingBlock, isMissing && styles.ratingBlockMissing]}>
+                          <View style={styles.ratingHeader}>
+                            <View style={styles.criterionTextGroup}>
+                              <Text style={styles.criterionName}>{criterion.name}</Text>
+                              <Text style={styles.weightText}>Gewichtung {criterion.weight}</Text>
                             </View>
-                          ) : null}
-                        </View>
-                        <View style={styles.scoreButtons}>
-                          {ratingScores.map((score) => {
-                            const isSelected = selectedRating?.score === score;
+                            {selectedRating ? (
+                              <View style={styles.selectedBadge}>
+                                <Text style={styles.selectedBadgeText}>{selectedRating.score}</Text>
+                              </View>
+                            ) : (
+                              <View style={styles.missingBadge}>
+                                <Text style={styles.missingBadgeText}>Fehlt</Text>
+                              </View>
+                            )}
+                          </View>
+                          <View style={styles.scoreButtons}>
+                            {ratingScores.map((score) => {
+                              const isSelected = selectedRating?.score === score;
 
-                            return (
-                              <Pressable
-                                accessibilityLabel={`${score} Punkte für ${option.name} bei ${criterion.name}`}
-                                accessibilityRole="button"
-                                accessibilityState={{ selected: isSelected }}
-                                key={score}
-                                onPress={() => {
-                                  setRating({
-                                    decisionId: decision.id,
-                                    optionId: option.id,
-                                    criterionId: criterion.id,
-                                    score,
-                                  })
-                                    .then(() => setScreenError(''))
-                                    .catch((error) => {
-                                      console.error('Failed to save rating', error);
-                                      setScreenError('Die Bewertung konnte nicht gespeichert werden.');
-                                    });
-                                }}
-                                style={({ pressed }) => [
-                                  styles.scoreButton,
-                                  isSelected && styles.scoreButtonSelected,
-                                  pressed && styles.scoreButtonPressed,
-                                ]}>
-                                <Text
-                                  style={[
-                                    styles.scoreButtonText,
-                                    isSelected && styles.scoreButtonTextSelected,
+                              return (
+                                <Pressable
+                                  accessibilityLabel={`${score} Punkte für ${option.name} bei ${criterion.name}`}
+                                  accessibilityRole="button"
+                                  accessibilityState={{ selected: isSelected }}
+                                  key={score}
+                                  onPress={() => {
+                                    setRating({
+                                      decisionId: decision.id,
+                                      optionId: option.id,
+                                      criterionId: criterion.id,
+                                      score,
+                                    })
+                                      .then(() => setScreenError(''))
+                                      .catch((error) => {
+                                        console.error('Failed to save rating', error);
+                                        setScreenError('Die Bewertung konnte nicht gespeichert werden.');
+                                      });
+                                  }}
+                                  style={({ pressed }) => [
+                                    styles.scoreButton,
+                                    isMissing && styles.scoreButtonMissing,
+                                    isSelected && styles.scoreButtonSelected,
+                                    pressed && styles.scoreButtonPressed,
                                   ]}>
-                                  {score}
-                                </Text>
-                              </Pressable>
-                            );
-                          })}
+                                  <Text
+                                    style={[
+                                      styles.scoreButtonText,
+                                      isSelected && styles.scoreButtonTextSelected,
+                                    ]}>
+                                    {score}
+                                  </Text>
+                                </Pressable>
+                              );
+                            })}
+                          </View>
                         </View>
-                      </View>
-                    );
-                  })}
-                </View>
-              </AppCard>
-            ))}
+                      );
+                    })}
+                  </View>
+                </AppCard>
+              );
+            })}
           </View>
 
           <View style={styles.section}>
-            <SectionHeader eyebrow="Ranking" title="Ergebnis" />
+            <SectionHeader
+              eyebrow={ratingProgress.isComplete ? 'Ranking' : 'Vorläufig'}
+              title="Ergebnis"
+            />
+            {!ratingProgress.isComplete ? (
+              <AppCard style={styles.incompleteNotice}>
+                <View style={styles.noticeIcon}>
+                  <Ionicons color={theme.colors.warning} name="alert-circle-outline" size={19} />
+                </View>
+                <View style={styles.noticeTextGroup}>
+                  <Text style={styles.noticeTitle}>Vorläufiges Ergebnis</Text>
+                  <Text style={styles.noticeText}>{ratingProgress.missing} Bewertungen fehlen noch.</Text>
+                </View>
+              </AppCard>
+            ) : null}
             <View style={styles.resultList}>
               {results.map((result) => {
                 const widthPercent = maxScore > 0 ? Math.max((result.totalScore / maxScore) * 100, 8) : 8;
@@ -192,7 +259,9 @@ export default function DecisionRatingsScreen() {
                       </View>
                       <View style={styles.resultContent}>
                         <Text style={styles.resultTitle}>{result.optionName}</Text>
-                        <Text style={styles.resultLabel}>{result.label}</Text>
+                        <Text style={styles.resultLabel}>
+                          {result.isComplete ? result.label : `${result.label} · ${result.missingRatings} offen`}
+                        </Text>
                       </View>
                       <View style={styles.scoreBadge}>
                         <Text style={styles.resultScore}>{result.totalScore}</Text>
@@ -224,7 +293,7 @@ const createStyles = (theme: AppThemeValues) => StyleSheet.create({
     paddingTop: 32,
   },
   heroCard: {
-    gap: 10,
+    gap: 12,
   },
   kicker: {
     color: theme.colors.primary,
@@ -250,11 +319,42 @@ const createStyles = (theme: AppThemeValues) => StyleSheet.create({
     gap: 8,
     paddingTop: 2,
   },
+  progressBox: {
+    gap: 8,
+  },
+  progressTextRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 10,
+    justifyContent: 'space-between',
+  },
+  progressText: {
+    color: theme.colors.textSecondary,
+    flex: 1,
+    fontSize: 13,
+    fontWeight: '800',
+  },
+  progressPercent: {
+    color: theme.colors.textStrong,
+    fontSize: 13,
+    fontWeight: '900',
+  },
+  progressTrack: {
+    backgroundColor: theme.colors.surfaceTint,
+    borderRadius: theme.radius.pill,
+    height: 9,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    backgroundColor: theme.colors.primary,
+    borderRadius: theme.radius.pill,
+    height: '100%',
+  },
   section: {
     gap: 12,
   },
   optionCard: {
-    gap: 16,
+    gap: 14,
   },
   optionHeader: {
     alignItems: 'center',
@@ -269,22 +369,56 @@ const createStyles = (theme: AppThemeValues) => StyleSheet.create({
     justifyContent: 'center',
     width: 38,
   },
+  optionTitleGroup: {
+    flex: 1,
+    gap: 2,
+  },
   optionTitle: {
     color: theme.colors.textStrong,
-    flex: 1,
-    fontSize: 19,
+    fontSize: 18,
     fontWeight: '900',
   },
+  optionProgressText: {
+    color: theme.colors.textSecondary,
+    fontSize: 12,
+    fontWeight: '800',
+  },
+  stateBadge: {
+    alignItems: 'center',
+    backgroundColor: theme.colors.surfaceTint,
+    borderColor: theme.colors.borderSoft,
+    borderRadius: theme.radius.pill,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: 5,
+    minHeight: 32,
+    paddingHorizontal: 10,
+  },
+  stateBadgeDone: {
+    backgroundColor: theme.colors.primary,
+    borderColor: theme.colors.primary,
+  },
+  stateBadgeText: {
+    color: theme.colors.warning,
+    fontSize: 12,
+    fontWeight: '900',
+  },
+  stateBadgeTextDone: {
+    color: theme.colors.onPrimary,
+  },
   criteriaList: {
-    gap: 13,
+    gap: 10,
   },
   ratingBlock: {
     backgroundColor: theme.colors.surfaceTint,
     borderColor: theme.colors.borderSoft,
     borderRadius: theme.radius.lg,
     borderWidth: 1,
-    gap: 11,
+    gap: 10,
     padding: 12,
+  },
+  ratingBlockMissing: {
+    borderColor: theme.colors.primaryBorder,
   },
   ratingHeader: {
     alignItems: 'center',
@@ -318,6 +452,21 @@ const createStyles = (theme: AppThemeValues) => StyleSheet.create({
     fontSize: 13,
     fontWeight: '900',
   },
+  missingBadge: {
+    alignItems: 'center',
+    backgroundColor: theme.colors.primarySoft,
+    borderColor: theme.colors.primaryBorder,
+    borderRadius: theme.radius.pill,
+    borderWidth: 1,
+    minHeight: 30,
+    justifyContent: 'center',
+    paddingHorizontal: 10,
+  },
+  missingBadgeText: {
+    color: theme.colors.textStrong,
+    fontSize: 12,
+    fontWeight: '900',
+  },
   scoreButtons: {
     flexDirection: 'row',
     gap: 7,
@@ -331,6 +480,9 @@ const createStyles = (theme: AppThemeValues) => StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     minHeight: theme.touch.min,
+  },
+  scoreButtonMissing: {
+    borderColor: theme.colors.primaryBorder,
   },
   scoreButtonPressed: {
     backgroundColor: theme.colors.surfacePressed,
@@ -348,6 +500,36 @@ const createStyles = (theme: AppThemeValues) => StyleSheet.create({
   },
   scoreButtonTextSelected: {
     color: theme.colors.onPrimary,
+  },
+  incompleteNotice: {
+    alignItems: 'center',
+    backgroundColor: theme.colors.primarySoft,
+    borderColor: theme.colors.primaryBorder,
+    flexDirection: 'row',
+    gap: 12,
+    padding: 12,
+  },
+  noticeIcon: {
+    alignItems: 'center',
+    backgroundColor: theme.colors.surfaceElevated,
+    borderRadius: theme.radius.pill,
+    height: 38,
+    justifyContent: 'center',
+    width: 38,
+  },
+  noticeTextGroup: {
+    flex: 1,
+    gap: 2,
+  },
+  noticeTitle: {
+    color: theme.colors.textStrong,
+    fontSize: 15,
+    fontWeight: '900',
+  },
+  noticeText: {
+    color: theme.colors.textSecondary,
+    fontSize: 13,
+    fontWeight: '700',
   },
   resultList: {
     gap: 10,
