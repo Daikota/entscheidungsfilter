@@ -1,6 +1,6 @@
 import { SQLiteDatabase } from 'expo-sqlite';
 
-const DATABASE_VERSION = 1;
+const DATABASE_VERSION = 2;
 
 export async function migrateDatabase(db: SQLiteDatabase) {
   await db.execAsync('PRAGMA journal_mode = WAL; PRAGMA foreign_keys = ON;');
@@ -54,6 +54,16 @@ export async function migrateDatabase(db: SQLiteDatabase) {
         FOREIGN KEY (decision_id) REFERENCES decisions (id) ON DELETE CASCADE,
         FOREIGN KEY (option_id) REFERENCES options (id) ON DELETE CASCADE,
         FOREIGN KEY (criterion_id) REFERENCES criteria (id) ON DELETE CASCADE
+      );
+    `);
+  }
+
+  if (currentVersion < 2) {
+    await db.execAsync(`
+      CREATE TABLE IF NOT EXISTS app_settings (
+        key TEXT PRIMARY KEY NOT NULL,
+        value TEXT NOT NULL,
+        updated_at TEXT NOT NULL
       );
     `);
   }

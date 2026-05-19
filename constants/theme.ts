@@ -1,4 +1,24 @@
+import {
+  createContext,
+  createElement,
+  PropsWithChildren,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 import { useColorScheme } from 'react-native';
+
+import {
+  loadThemePreferenceFromDatabase,
+  saveThemePreferenceToDatabase,
+} from '@/database/app-settings-repository';
+
+export type ThemePreference = 'system' | 'dark' | 'light';
+
+export const isThemePreference = (value: string | undefined): value is ThemePreference =>
+  value === 'system' || value === 'dark' || value === 'light';
 
 export const AppColorSchemes = {
   light: {
@@ -112,18 +132,77 @@ type AppColorTokens = Record<keyof typeof AppColorSchemes.light, string>;
 export type AppThemeValues = Omit<typeof AppTheme, 'colors' | 'darkColors'> & {
   colors: AppColorTokens;
   darkColors: AppColorTokens;
+  preference: ThemePreference;
+  setPreference: (preference: ThemePreference) => Promise<void>;
 };
 
-export function getAppTheme(colorScheme: 'light' | 'dark' | null | undefined): AppThemeValues {
-  const isDark = colorScheme === 'dark';
+const noopSetPreference = async () => {};
+
+export function getAppTheme(
+  colorScheme: 'light' | 'dark' | null | undefined,
+  preference: ThemePreference = 'system',
+  setPreference: (preference: ThemePreference) => Promise<void> = noopSetPreference
+): AppThemeValues {
+  const effectiveScheme = preference === 'system' ? colorScheme : preference;
+  const isDark = effectiveScheme === 'dark';
 
   return {
     ...AppTheme,
     isDark,
     colors: isDark ? AppColorSchemes.dark : AppColorSchemes.light,
+    preference,
+    setPreference,
   };
 }
 
+const AppThemeContext = createContext<AppThemeValues | null>(null);
+
+export function AppThemeProvider({ children }: PropsWithChildren) {
+  const colorScheme = useColorScheme();
+  const [preference, setPreferenceState] = useState<ThemePreference>('system');
+
+  useEffect(() => {
+    let isMounted = true;
+
+    loadThemePreferenceFromDatabase()
+      .then((persistedPreference) => {
+        if (isMounted) {
+          setPreferenceState(persistedPreference);
+        }
+      })
+      .catch((error) => {
+        console.error('Failed to load theme preference', error);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const setPreference = useCallback(async (nextPreference: ThemePreference) => {
+    setPreferenceState(nextPreference);
+
+    try {
+      await saveThemePreferenceToDatabase(nextPreference);
+    } catch (error) {
+      console.error('Failed to save theme preference', error);
+    }
+  }, []);
+
+  const theme = useMemo(
+    () => getAppTheme(colorScheme, preference, setPreference),
+    [colorScheme, preference, setPreference]
+  );
+
+  return createElement(AppThemeContext.Provider, { value: theme }, children);
+}
+
 export function useAppTheme() {
-  return getAppTheme(useColorScheme());
+  const context = useContext(AppThemeContext);
+
+  if (context === null) {
+    return getAppTheme(useColorScheme());
+  }
+
+  return context;
 }

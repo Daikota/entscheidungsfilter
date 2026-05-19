@@ -1,15 +1,21 @@
 import Constants from 'expo-constants';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
-import { AppButton, AppCard, SectionHeader, StatPill } from '@/components/ui/app-ui';
-import { AppThemeValues, useAppTheme } from '@/constants/theme';
+import { AppButton, AppCard, AppLogo, SectionHeader, StatPill } from '@/components/ui/app-ui';
+import { AppThemeValues, ThemePreference, useAppTheme } from '@/constants/theme';
 import { useDecisions } from '@/contexts/decision-context';
 
-const appVersion = Constants.expoConfig?.version ?? '0.9.9';
+const appVersion = Constants.expoConfig?.version ?? '1.0.0';
+
+const themeOptions: { value: ThemePreference; label: string; icon: keyof typeof Ionicons.glyphMap }[] = [
+  { value: 'system', label: 'System', icon: 'phone-portrait-outline' },
+  { value: 'dark', label: 'Dunkel', icon: 'moon-outline' },
+  { value: 'light', label: 'Hell', icon: 'sunny-outline' },
+];
 
 export default function SettingsScreen() {
   const theme = useAppTheme();
@@ -40,8 +46,8 @@ export default function SettingsScreen() {
       contentContainerStyle={[styles.content, { paddingBottom: Math.max(insets.bottom + 32, 56) }]}
       style={styles.screen}>
       <AppCard elevated style={styles.heroCard}>
-        <View style={styles.heroIcon}>
-          <Ionicons color={theme.colors.onPrimary} name="settings-outline" size={24} />
+        <View style={styles.heroLogo}>
+          <AppLogo size={52} />
         </View>
         <View style={styles.heroText}>
           <Text style={styles.kicker}>App</Text>
@@ -52,6 +58,41 @@ export default function SettingsScreen() {
           </View>
         </View>
       </AppCard>
+
+      <View style={styles.section}>
+        <SectionHeader eyebrow="Theme" title="Darstellung" />
+        <View style={styles.themeControl}>
+          {themeOptions.map((option) => {
+            const isSelected = theme.preference === option.value;
+
+            return (
+              <Pressable
+                accessibilityRole="button"
+                accessibilityState={{ selected: isSelected }}
+                key={option.value}
+                onPress={() => {
+                  theme.setPreference(option.value).catch((error) => {
+                    console.error('Failed to update theme preference', error);
+                  });
+                }}
+                style={({ pressed }) => [
+                  styles.themeOption,
+                  isSelected && styles.themeOptionSelected,
+                  pressed && styles.themeOptionPressed,
+                ]}>
+                <Ionicons
+                  color={isSelected ? theme.colors.onPrimary : theme.colors.textSecondary}
+                  name={option.icon}
+                  size={17}
+                />
+                <Text style={[styles.themeOptionText, isSelected && styles.themeOptionTextSelected]}>
+                  {option.label}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
+      </View>
 
       <View style={styles.section}>
         <SectionHeader eyebrow="Daten" title="Lokaler Speicher" />
@@ -130,9 +171,8 @@ const createStyles = (theme: AppThemeValues) => StyleSheet.create({
   heroCard: {
     gap: 16,
   },
-  heroIcon: {
+  heroLogo: {
     alignItems: 'center',
-    backgroundColor: theme.colors.primary,
     borderRadius: theme.radius.pill,
     height: 52,
     justifyContent: 'center',
@@ -161,6 +201,39 @@ const createStyles = (theme: AppThemeValues) => StyleSheet.create({
   },
   section: {
     gap: 12,
+  },
+  themeControl: {
+    backgroundColor: theme.colors.surfaceTint,
+    borderColor: theme.colors.borderSoft,
+    borderRadius: theme.radius.pill,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: 6,
+    padding: 5,
+  },
+  themeOption: {
+    alignItems: 'center',
+    borderRadius: theme.radius.pill,
+    flex: 1,
+    flexDirection: 'row',
+    gap: 6,
+    justifyContent: 'center',
+    minHeight: theme.touch.min,
+    paddingHorizontal: 8,
+  },
+  themeOptionPressed: {
+    backgroundColor: theme.colors.surfacePressed,
+  },
+  themeOptionSelected: {
+    backgroundColor: theme.colors.primary,
+  },
+  themeOptionText: {
+    color: theme.colors.textSecondary,
+    fontSize: 13,
+    fontWeight: '900',
+  },
+  themeOptionTextSelected: {
+    color: theme.colors.onPrimary,
   },
   infoCard: {
     alignItems: 'center',

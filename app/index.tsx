@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AppThemeValues, useAppTheme } from '@/constants/theme';
 import { useDecisions } from '@/contexts/decision-context';
-import { AppButton, AppCard, EmptyState, IconButton, StatPill } from '@/components/ui/app-ui';
+import { AppButton, AppCard, AppLogo, EmptyState, IconButton, StatPill } from '@/components/ui/app-ui';
 
 const formatDateTime = (value: string) => {
   const date = new Date(value);
@@ -34,8 +34,8 @@ export default function HomeScreen() {
         style={styles.contentArea}>
         <View style={styles.hero}>
           <View style={styles.heroTopRow}>
-            <View style={styles.heroIcon}>
-              <Ionicons color={theme.colors.onPrimary} name="sparkles" size={24} />
+            <View style={styles.heroLogo}>
+              <AppLogo size={52} />
             </View>
             <IconButton
               icon="settings-outline"
@@ -78,7 +78,7 @@ export default function HomeScreen() {
                 accessibilityLabel={`Entscheidung ${decision.title} öffnen`}
                 accessibilityRole="button"
                 key={decision.id}
-                onPress={() => router.push({ pathname: '/decision/[id]', params: { id: decision.id } })}
+                onPress={() => router.push({ pathname: '/decision/[id]/ratings', params: { id: decision.id } })}
                 style={({ pressed }) => [
                   styles.decisionPressable,
                   pressed && styles.decisionPressablePressed,
@@ -151,9 +151,8 @@ const createStyles = (theme: AppThemeValues) => StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
-  heroIcon: {
+  heroLogo: {
     alignItems: 'center',
-    backgroundColor: theme.colors.primary,
     borderRadius: theme.radius.pill,
     height: 52,
     justifyContent: 'center',

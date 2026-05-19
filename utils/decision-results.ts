@@ -14,23 +14,14 @@ const getResultLabel = (rank: number): DecisionResult['label'] => {
 
 export function calculateDecisionResults(decision: Decision): DecisionResult[] {
   const unsortedResults = decision.options.map((option) => {
-    const breakdown = decision.criteria.map((criterion) => {
+    const totalScore = decision.criteria.reduce((sum, criterion) => {
       const rating = decision.ratings.find(
         (currentRating) =>
           currentRating.optionId === option.id && currentRating.criterionId === criterion.id
       );
-      const score = rating?.score ?? null;
 
-      return {
-        criterionId: criterion.id,
-        criterionName: criterion.name,
-        weight: criterion.weight,
-        score,
-        weightedScore: (score ?? 0) * criterion.weight,
-        isMissing: score === null,
-      };
-    });
-    const totalScore = breakdown.reduce((sum, item) => sum + item.weightedScore, 0);
+      return sum + (rating?.score ?? 0) * criterion.weight;
+    }, 0);
     const optionProgress = getOptionRatingProgress(decision, option.id);
 
     return {
@@ -40,7 +31,6 @@ export function calculateDecisionResults(decision: Decision): DecisionResult[] {
       completedRatings: optionProgress.completed,
       missingRatings: optionProgress.missing,
       isComplete: optionProgress.isComplete,
-      breakdown,
     };
   });
 

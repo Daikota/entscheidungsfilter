@@ -1,10 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Link, useLocalSearchParams } from 'expo-router';
+import { Link, useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { AppButton, AppCard, EmptyState, SectionHeader, StatPill } from '@/components/ui/app-ui';
+import { AppButton, AppCard, EmptyState, IconButton, SectionHeader, StatPill } from '@/components/ui/app-ui';
 import { AppThemeValues, useAppTheme } from '@/constants/theme';
 import { useDecisions } from '@/contexts/decision-context';
 import { RatingScore } from '@/types/decision';
@@ -20,12 +20,12 @@ const ratingScores: RatingScore[] = [1, 2, 3, 4, 5];
 export default function DecisionRatingsScreen() {
   const theme = useAppTheme();
   const styles = createStyles(theme);
+  const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { decisions, databaseError, isDatabaseReady, setRating } = useDecisions();
   const insets = useSafeAreaInsets();
   const decision = decisions.find((currentDecision) => currentDecision.id === id);
   const [screenError, setScreenError] = useState('');
-  const [expandedResultIds, setExpandedResultIds] = useState<string[]>([]);
 
   if (!isDatabaseReady) {
     return (
@@ -70,27 +70,29 @@ export default function DecisionRatingsScreen() {
   const ratingProgress = getDecisionRatingProgress(decision);
   const progressWidth = hasMissingSetup ? 0 : Math.max(ratingProgress.percentage, 4);
 
-  const toggleResultDetails = (optionId: string) => {
-    setExpandedResultIds((currentIds) =>
-      currentIds.includes(optionId)
-        ? currentIds.filter((currentId) => currentId !== optionId)
-        : [...currentIds, optionId]
-    );
-  };
-
   return (
     <ScrollView
       contentContainerStyle={[styles.content, { paddingBottom: Math.max(insets.bottom + 34, 52) }]}
       style={styles.screen}>
       <AppCard elevated style={styles.heroCard}>
-        <Text style={styles.kicker}>Analyse</Text>
-        <Text style={styles.title}>Bewertung</Text>
+        <View style={styles.heroTopRow}>
+          <View style={styles.heroTitleGroup}>
+            <Text style={styles.kicker}>Analyse</Text>
+            <Text style={styles.title}>Bewertung</Text>
+          </View>
+          <IconButton
+            icon="create-outline"
+            label="Entscheidung bearbeiten"
+            onPress={() => router.push({ pathname: '/decision/[id]', params: { id: decision.id } })}
+          />
+        </View>
         <Text numberOfLines={2} style={styles.subtitle}>
           {decision.title}
         </Text>
         <View style={styles.statsRow}>
-          <StatPill icon="list-outline" label="Optionen" value={`${decision.options.length}`} emphasis />
+          <StatPill icon="list-outline" label="Optionen" value={`${decision.options.length}`} />
           <StatPill icon="options-outline" label="Kriterien" value={`${decision.criteria.length}`} />
+          <StatPill icon="trending-up-outline" label="Skala" value="1-5" />
           <StatPill icon="checkmark-circle-outline" label="Erledigt" value={`${ratingProgress.completed}/${ratingProgress.total}`} />
         </View>
         {!hasMissingSetup ? (
@@ -127,8 +129,13 @@ export default function DecisionRatingsScreen() {
           <View style={styles.section}>
             <SectionHeader
               eyebrow={ratingProgress.isComplete ? 'Komplett' : 'Offen'}
-              title="Punkte vergeben"
+              title="Optionen bewerten"
             />
+            <AppCard style={styles.scaleHint}>
+              <Text style={styles.scaleHintText}>1 niedrig</Text>
+              <View style={styles.scaleHintLine} />
+              <Text style={styles.scaleHintText}>5 hoch</Text>
+            </AppCard>
             {decision.options.map((option) => {
               const optionProgress = getOptionRatingProgress(decision, option.id);
 
@@ -175,7 +182,7 @@ export default function DecisionRatingsScreen() {
                           <View style={styles.ratingHeader}>
                             <View style={styles.criterionTextGroup}>
                               <Text numberOfLines={2} style={styles.criterionName}>{criterion.name}</Text>
-                              <Text style={styles.weightText}>Gewichtung {criterion.weight}</Text>
+                              <Text style={styles.weightText}>Gewicht {criterion.weight}</Text>
                             </View>
                             {selectedRating ? (
                               <View style={styles.selectedBadge}>
@@ -255,8 +262,6 @@ export default function DecisionRatingsScreen() {
             <View style={styles.resultList}>
               {results.map((result) => {
                 const widthPercent = maxScore > 0 ? Math.max((result.totalScore / maxScore) * 100, 8) : 8;
-                const isExpanded = expandedResultIds.includes(result.optionId);
-
                 return (
                   <AppCard
                     elevated={result.rank === 1}
@@ -282,52 +287,6 @@ export default function DecisionRatingsScreen() {
                     <View style={styles.scoreTrack}>
                       <View style={[styles.scoreFill, { width: `${widthPercent}%` }]} />
                     </View>
-                    <Pressable
-                      accessibilityLabel={`${result.optionName} Punkteaufschlüsselung ${isExpanded ? 'schließen' : 'öffnen'}`}
-                      accessibilityRole="button"
-                      onPress={() => toggleResultDetails(result.optionId)}
-                      style={({ pressed }) => [
-                        styles.breakdownToggle,
-                        pressed && styles.breakdownTogglePressed,
-                      ]}>
-                      <Ionicons
-                        color={theme.colors.textSecondary}
-                        name={isExpanded ? 'chevron-up' : 'chevron-down'}
-                        size={18}
-                      />
-                      <Text style={styles.breakdownToggleText}>
-                        {isExpanded ? 'Details schließen' : 'Warum?'}
-                      </Text>
-                    </Pressable>
-                    {isExpanded ? (
-                      <View style={styles.breakdownList}>
-                        {result.breakdown.map((item) => (
-                          <View key={item.criterionId} style={styles.breakdownRow}>
-                            <View style={styles.breakdownMain}>
-                              <Text numberOfLines={2} style={styles.breakdownCriterion}>
-                                {item.criterionName}
-                              </Text>
-                              <Text style={styles.breakdownFormula}>
-                                {item.isMissing ? 'Fehlt' : `${item.score} x ${item.weight}`}
-                              </Text>
-                            </View>
-                            <View
-                              style={[
-                                styles.breakdownScore,
-                                item.isMissing && styles.breakdownScoreMissing,
-                              ]}>
-                              <Text
-                                style={[
-                                  styles.breakdownScoreText,
-                                  item.isMissing && styles.breakdownScoreTextMissing,
-                                ]}>
-                                {item.weightedScore}
-                              </Text>
-                            </View>
-                          </View>
-                        ))}
-                      </View>
-                    ) : null}
                   </AppCard>
                 );
               })}
@@ -351,6 +310,15 @@ const createStyles = (theme: AppThemeValues) => StyleSheet.create({
   },
   heroCard: {
     gap: 12,
+  },
+  heroTopRow: {
+    alignItems: 'flex-start',
+    flexDirection: 'row',
+    gap: 12,
+  },
+  heroTitleGroup: {
+    flex: 1,
+    gap: 4,
   },
   kicker: {
     color: theme.colors.primary,
@@ -409,6 +377,23 @@ const createStyles = (theme: AppThemeValues) => StyleSheet.create({
   },
   section: {
     gap: 12,
+  },
+  scaleHint: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 10,
+    padding: 12,
+  },
+  scaleHintLine: {
+    backgroundColor: theme.colors.primary,
+    borderRadius: theme.radius.pill,
+    flex: 1,
+    height: 4,
+  },
+  scaleHintText: {
+    color: theme.colors.textSecondary,
+    fontSize: 13,
+    fontWeight: '900',
   },
   optionCard: {
     gap: 12,
@@ -659,75 +644,6 @@ const createStyles = (theme: AppThemeValues) => StyleSheet.create({
     backgroundColor: theme.colors.primary,
     borderRadius: theme.radius.pill,
     height: '100%',
-  },
-  breakdownToggle: {
-    alignItems: 'center',
-    alignSelf: 'flex-start',
-    backgroundColor: theme.colors.surfaceTint,
-    borderColor: theme.colors.borderSoft,
-    borderRadius: theme.radius.pill,
-    borderWidth: 1,
-    flexDirection: 'row',
-    gap: 6,
-    minHeight: 38,
-    paddingHorizontal: 12,
-  },
-  breakdownTogglePressed: {
-    backgroundColor: theme.colors.surfacePressed,
-  },
-  breakdownToggleText: {
-    color: theme.colors.textSecondary,
-    fontSize: 13,
-    fontWeight: '900',
-  },
-  breakdownList: {
-    gap: 8,
-  },
-  breakdownRow: {
-    alignItems: 'center',
-    backgroundColor: theme.colors.surfaceTint,
-    borderColor: theme.colors.borderSoft,
-    borderRadius: theme.radius.lg,
-    borderWidth: 1,
-    flexDirection: 'row',
-    gap: 10,
-    padding: 10,
-  },
-  breakdownMain: {
-    flex: 1,
-    gap: 3,
-  },
-  breakdownCriterion: {
-    color: theme.colors.textStrong,
-    fontSize: 14,
-    fontWeight: '900',
-  },
-  breakdownFormula: {
-    color: theme.colors.textSecondary,
-    fontSize: 12,
-    fontWeight: '800',
-  },
-  breakdownScore: {
-    alignItems: 'center',
-    backgroundColor: theme.colors.primary,
-    borderRadius: theme.radius.pill,
-    minHeight: 34,
-    justifyContent: 'center',
-    minWidth: 42,
-    paddingHorizontal: 10,
-  },
-  breakdownScoreMissing: {
-    backgroundColor: theme.colors.primarySoft,
-    borderColor: theme.colors.primaryBorder,
-    borderWidth: 1,
-  },
-  breakdownScoreText: {
-    color: theme.colors.onPrimary,
-    fontSize: 14,
-    fontWeight: '900',
-  },
-  breakdownScoreTextMissing: {
-    color: theme.colors.textStrong,
   },
   errorBox: {
     backgroundColor: theme.colors.dangerSoft,

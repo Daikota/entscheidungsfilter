@@ -35,16 +35,6 @@ export type DecisionResult = {
   completedRatings: number;
   missingRatings: number;
   isComplete: boolean;
-  breakdown: DecisionResultBreakdownItem[];
-};
-
-export type DecisionResultBreakdownItem = {
-  criterionId: string;
-  criterionName: string;
-  weight: CriterionWeight;
-  score: RatingScore | null;
-  weightedScore: number;
-  isMissing: boolean;
 };
 
 export type RatingProgress = {

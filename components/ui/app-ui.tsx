@@ -1,6 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import { ReactNode } from 'react';
 import {
+  Image,
+  ImageStyle,
   Pressable,
   PressableProps,
   StyleProp,
@@ -15,6 +17,27 @@ import {
 import { AppThemeValues, useAppTheme } from '@/constants/theme';
 
 type IconName = keyof typeof Ionicons.glyphMap;
+
+const logoDark = require('../../assets/images/logo-dark.png');
+const logoLight = require('../../assets/images/logo-light.png');
+
+type AppLogoProps = {
+  size?: number;
+  style?: StyleProp<ImageStyle>;
+};
+
+export function AppLogo({ size = 52, style }: AppLogoProps) {
+  const theme = useAppTheme();
+
+  return (
+    <Image
+      accessibilityIgnoresInvertColors
+      accessibilityLabel="Entscheidungsfilter Logo"
+      source={theme.isDark ? logoDark : logoLight}
+      style={[{ height: size, width: size }, style]}
+    />
+  );
+}
 
 type AppButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger';
 
@@ -192,7 +215,7 @@ export function StatPill({ label, value, icon, emphasis = false }: StatPillProps
 
   return (
     <View style={[styles.statPill, emphasis && styles.statPillEmphasis]}>
-      {icon ? <Ionicons color={emphasis ? theme.colors.onPrimary : theme.colors.textSecondary} name={icon} size={15} /> : null}
+      {icon ? <Ionicons color={emphasis ? theme.colors.textStrong : theme.colors.textSecondary} name={icon} size={15} /> : null}
       <Text style={[styles.statLabel, emphasis && styles.statTextEmphasis]}>{label}</Text>
       <Text style={[styles.statValue, emphasis && styles.statTextEmphasis]}>{value}</Text>
     </View>
@@ -319,7 +342,7 @@ const createStyles = (theme: AppThemeValues) => StyleSheet.create({
     gap: 3,
   },
   eyebrow: {
-    color: theme.colors.primary,
+    color: theme.colors.textSecondary,
     fontSize: 12,
     fontWeight: '900',
     letterSpacing: 0,
@@ -369,8 +392,8 @@ const createStyles = (theme: AppThemeValues) => StyleSheet.create({
     paddingHorizontal: 11,
   },
   statPillEmphasis: {
-    backgroundColor: theme.colors.primary,
-    borderColor: theme.colors.primary,
+    backgroundColor: theme.colors.surfaceRaised,
+    borderColor: theme.colors.border,
   },
   statLabel: {
     color: theme.colors.textSecondary,
@@ -383,6 +406,6 @@ const createStyles = (theme: AppThemeValues) => StyleSheet.create({
     fontWeight: '900',
   },
   statTextEmphasis: {
-    color: theme.colors.onPrimary,
+    color: theme.colors.textStrong,
   },
 });

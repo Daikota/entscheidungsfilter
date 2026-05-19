@@ -4,10 +4,20 @@ import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import 'react-native-reanimated';
 
-import { useAppTheme } from '@/constants/theme';
+import { AppThemeProvider, useAppTheme } from '@/constants/theme';
 import { DecisionProvider } from '@/contexts/decision-context';
 
 export default function RootLayout() {
+  return (
+    <SafeAreaProvider>
+      <AppThemeProvider>
+        <ThemedRootLayout />
+      </AppThemeProvider>
+    </SafeAreaProvider>
+  );
+}
+
+function ThemedRootLayout() {
   const appTheme = useAppTheme();
   const navigationTheme = {
     ...DefaultTheme,
@@ -23,57 +33,55 @@ export default function RootLayout() {
   };
 
   return (
-    <SafeAreaProvider>
-      <ThemeProvider value={navigationTheme}>
-        <DecisionProvider>
-          <Stack>
-            <Stack.Screen
-              name="index"
-              options={{
-                headerShown: false,
-                title: 'Entscheidungsfilter',
-              }}
-            />
-            <Stack.Screen
-              name="create-decision"
-              options={{
-                headerShadowVisible: false,
-                headerStyle: { backgroundColor: appTheme.colors.surface },
-                headerTintColor: appTheme.colors.textStrong,
-                title: 'Neue Entscheidung',
-              }}
-            />
-            <Stack.Screen
-              name="settings"
-              options={{
-                headerShadowVisible: false,
-                headerStyle: { backgroundColor: appTheme.colors.surface },
-                headerTintColor: appTheme.colors.textStrong,
-                title: 'Einstellungen',
-              }}
-            />
-            <Stack.Screen
-              name="decision/[id]"
-              options={{
-                headerShadowVisible: false,
-                headerStyle: { backgroundColor: appTheme.colors.surface },
-                headerTintColor: appTheme.colors.textStrong,
-                title: 'Entscheidung',
-              }}
-            />
-            <Stack.Screen
-              name="decision/[id]/ratings"
-              options={{
-                headerShadowVisible: false,
-                headerStyle: { backgroundColor: appTheme.colors.surface },
-                headerTintColor: appTheme.colors.textStrong,
-                title: 'Bewertung',
-              }}
-            />
-          </Stack>
-          <StatusBar style={appTheme.isDark ? 'light' : 'dark'} />
-        </DecisionProvider>
-      </ThemeProvider>
-    </SafeAreaProvider>
+    <ThemeProvider value={navigationTheme}>
+      <DecisionProvider>
+        <Stack>
+          <Stack.Screen
+            name="index"
+            options={{
+              headerShown: false,
+              title: 'Entscheidungsfilter',
+            }}
+          />
+          <Stack.Screen
+            name="create-decision"
+            options={{
+              headerShadowVisible: false,
+              headerStyle: { backgroundColor: appTheme.colors.surface },
+              headerTintColor: appTheme.colors.textStrong,
+              title: 'Neue Entscheidung',
+            }}
+          />
+          <Stack.Screen
+            name="settings"
+            options={{
+              headerShadowVisible: false,
+              headerStyle: { backgroundColor: appTheme.colors.surface },
+              headerTintColor: appTheme.colors.textStrong,
+              title: 'Einstellungen',
+            }}
+          />
+          <Stack.Screen
+            name="decision/[id]"
+            options={{
+              headerShadowVisible: false,
+              headerStyle: { backgroundColor: appTheme.colors.surface },
+              headerTintColor: appTheme.colors.textStrong,
+              title: 'Entscheidung',
+            }}
+          />
+          <Stack.Screen
+            name="decision/[id]/ratings"
+            options={{
+              headerShadowVisible: false,
+              headerStyle: { backgroundColor: appTheme.colors.surface },
+              headerTintColor: appTheme.colors.textStrong,
+              title: 'Bewertung',
+            }}
+          />
+        </Stack>
+        <StatusBar style={appTheme.isDark ? 'light' : 'dark'} />
+      </DecisionProvider>
+    </ThemeProvider>
   );
 }
