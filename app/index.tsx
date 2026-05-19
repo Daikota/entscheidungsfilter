@@ -69,7 +69,7 @@ export default function HomeScreen() {
           <EmptyState
             icon="compass-outline"
             title="Noch nichts zu vergleichen"
-            message="Starte mit einer Entscheidung und sammle direkt erste Optionen."
+            message="Starte mit Optionen und Kriterien."
           />
         ) : (
           <View style={styles.decisionList}>

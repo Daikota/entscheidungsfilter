@@ -265,7 +265,7 @@ export default function CreateDecisionScreen() {
                 variant="ghost"
               />
             )}
-            <AppButton icon="add" onPress={addDraftOption} title="Option übernehmen" variant="secondary" />
+            <AppButton icon="add" onPress={addDraftOption} title="Hinzufügen" variant="secondary" />
           </AppCard>
 
           {draftOptions.length > 0 ? (
@@ -293,7 +293,7 @@ export default function CreateDecisionScreen() {
               ))}
             </View>
           ) : (
-            <Text style={styles.helperText}>Optionen kannst du auch später ergänzen.</Text>
+            <Text style={styles.helperText}>Alternativen kannst du später ergänzen.</Text>
           )}
         </View>
 
@@ -334,7 +334,7 @@ export default function CreateDecisionScreen() {
                 ))}
               </View>
             </View>
-            <AppButton icon="add" onPress={addDraftCriterion} title="Kriterium übernehmen" variant="secondary" />
+            <AppButton icon="add" onPress={addDraftCriterion} title="Hinzufügen" variant="secondary" />
           </AppCard>
 
           {draftCriteria.length > 0 ? (
@@ -362,7 +362,7 @@ export default function CreateDecisionScreen() {
               ))}
             </View>
           ) : (
-            <Text style={styles.helperText}>Kriterien bestimmen später die Ergebnisqualität.</Text>
+            <Text style={styles.helperText}>Kriterien machen das Ranking nachvollziehbar.</Text>
           )}
 
           {feedbackMessage.length > 0 ? (

@@ -9,7 +9,7 @@ import { AppButton, AppCard, SectionHeader, StatPill } from '@/components/ui/app
 import { AppThemeValues, useAppTheme } from '@/constants/theme';
 import { useDecisions } from '@/contexts/decision-context';
 
-const appVersion = Constants.expoConfig?.version ?? '0.9.7';
+const appVersion = Constants.expoConfig?.version ?? '0.9.8';
 
 export default function SettingsScreen() {
   const theme = useAppTheme();
@@ -54,14 +54,14 @@ export default function SettingsScreen() {
       </AppCard>
 
       <View style={styles.section}>
-        <SectionHeader eyebrow="Daten" title="Lokale Speicherung" />
+        <SectionHeader eyebrow="Daten" title="Lokaler Speicher" />
         <AppCard style={styles.infoCard}>
           <View style={styles.infoIcon}>
             <Ionicons color={theme.colors.primary} name="lock-closed-outline" size={19} />
           </View>
           <View style={styles.infoTextGroup}>
             <Text style={styles.infoTitle}>Nur auf diesem Gerät</Text>
-            <Text style={styles.infoText}>Entscheidungen, Optionen, Kriterien und Bewertungen bleiben lokal.</Text>
+            <Text style={styles.infoText}>Entscheidungen und Bewertungen bleiben auf diesem Gerät.</Text>
           </View>
         </AppCard>
       </View>
@@ -76,7 +76,7 @@ export default function SettingsScreen() {
               </View>
               <View style={styles.dangerTextGroup}>
                 <Text style={styles.dangerTitle}>Alle Daten löschen?</Text>
-                <Text style={styles.dangerText}>{decisions.length} Entscheidungen werden entfernt.</Text>
+                <Text style={styles.dangerText}>{decisions.length} Entscheidungen werden gelöscht.</Text>
               </View>
             </View>
             {deleteError.length > 0 ? (
@@ -229,6 +229,7 @@ const createStyles = (theme: AppThemeValues) => StyleSheet.create({
   },
   actions: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 10,
     justifyContent: 'flex-end',
   },

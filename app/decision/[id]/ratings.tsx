@@ -54,7 +54,7 @@ export default function DecisionRatingsScreen() {
           <EmptyState
             icon="help-circle-outline"
             title="Entscheidung nicht gefunden"
-            message="Die lokale Datenbank konnte diesen Eintrag nicht laden."
+            message="Dieser Eintrag ist nicht mehr verfügbar."
           />
           <Link href="/" asChild>
             <AppButton icon="home-outline" title="Zur Startseite" />
@@ -120,7 +120,7 @@ export default function DecisionRatingsScreen() {
         <EmptyState
           icon="construct-outline"
           title="Noch nicht bereit"
-          message="Mindestens 2 Optionen und 1 Kriterium."
+          message="2 Optionen und 1 Kriterium nötig."
         />
       ) : (
         <>

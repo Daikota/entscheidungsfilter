@@ -85,7 +85,7 @@ export default function DecisionDetailScreen() {
           <EmptyState
             icon="help-circle-outline"
             title="Entscheidung nicht gefunden"
-            message="Die lokale Datenbank konnte diesen Eintrag nicht laden."
+            message="Dieser Eintrag ist nicht mehr verfügbar."
           />
           <Link href="/" asChild>
             <AppButton icon="home-outline" title="Zur Startseite" />
@@ -424,7 +424,7 @@ export default function DecisionDetailScreen() {
             <EmptyState
               icon="radio-button-off-outline"
               title="Noch keine Optionen"
-              message="Füge Alternativen hinzu, die du gegeneinander bewerten willst."
+              message="Füge Alternativen für den Vergleich hinzu."
             />
           ) : (
             <View style={styles.itemList}>
@@ -568,7 +568,7 @@ export default function DecisionDetailScreen() {
             <EmptyState
               icon="speedometer-outline"
               title="Noch keine Kriterien"
-              message="Lege fest, wonach die Optionen bewertet werden."
+              message="Lege fest, woran du bewertest."
             />
           ) : (
             <View style={styles.itemList}>
@@ -672,7 +672,7 @@ export default function DecisionDetailScreen() {
                 </View>
                 <View style={styles.deleteCopy}>
                   <Text style={styles.deleteTitle}>Entscheidung löschen?</Text>
-                  <Text style={styles.deleteText}>Alle Optionen, Kriterien und Bewertungen werden entfernt.</Text>
+                  <Text style={styles.deleteText}>Alle zugehörigen Daten werden entfernt.</Text>
                 </View>
               </View>
               {deleteError.length > 0 ? (
@@ -782,6 +782,7 @@ const createStyles = (theme: AppThemeValues) => StyleSheet.create({
   },
   editActions: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 10,
     justifyContent: 'flex-end',
   },

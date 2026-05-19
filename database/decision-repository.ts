@@ -76,8 +76,15 @@ export async function loadDecisionsFromDatabase() {
         createdAt: criterionRow.created_at,
       }));
 
+    const optionIds = new Set(options.map((option) => option.id));
+    const criterionIds = new Set(criteria.map((criterion) => criterion.id));
     const ratings = ratingRows
-      .filter((ratingRow) => ratingRow.decision_id === decisionRow.id)
+      .filter(
+        (ratingRow) =>
+          ratingRow.decision_id === decisionRow.id &&
+          optionIds.has(ratingRow.option_id) &&
+          criterionIds.has(ratingRow.criterion_id)
+      )
       .map<DecisionRating>((ratingRow) => ({
         id: ratingRow.id,
         decisionId: ratingRow.decision_id,
@@ -170,6 +177,11 @@ export async function insertOption(decisionId: string, option: DecisionOption, u
 export async function deleteOptionFromDatabase(decisionId: string, optionId: string, updatedAt: string) {
   const db = await getDatabase();
   await db.withExclusiveTransactionAsync(async (transaction) => {
+    await transaction.runAsync(
+      'DELETE FROM ratings WHERE decision_id = ? AND option_id = ?',
+      decisionId,
+      optionId
+    );
     await transaction.runAsync('DELETE FROM options WHERE id = ? AND decision_id = ?', optionId, decisionId);
     await transaction.runAsync('UPDATE decisions SET updated_at = ? WHERE id = ?', updatedAt, decisionId);
   });
@@ -259,6 +271,11 @@ export async function deleteCriterionFromDatabase(
 ) {
   const db = await getDatabase();
   await db.withExclusiveTransactionAsync(async (transaction) => {
+    await transaction.runAsync(
+      'DELETE FROM ratings WHERE decision_id = ? AND criterion_id = ?',
+      decisionId,
+      criterionId
+    );
     await transaction.runAsync(
       'DELETE FROM criteria WHERE id = ? AND decision_id = ?',
       criterionId,

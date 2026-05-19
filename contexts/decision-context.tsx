@@ -128,7 +128,6 @@ export function DecisionProvider({ children }: PropsWithChildren) {
 
     for (const option of input.options) {
       assertNonEmptyName(option.name, 'Option name is required');
-
     }
 
     if (hasDuplicateNameInList(optionNames)) {
