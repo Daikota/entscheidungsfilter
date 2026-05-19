@@ -307,6 +307,7 @@ export default function DecisionDetailScreen() {
     <View style={styles.screen}>
       <ScrollView
         contentContainerStyle={[styles.content, { paddingBottom: Math.max(insets.bottom + 120, 140) }]}
+        keyboardDismissMode="on-drag"
         keyboardShouldPersistTaps="handled">
         <AppCard elevated style={styles.heroCard}>
           <View style={styles.heroTopRow}>

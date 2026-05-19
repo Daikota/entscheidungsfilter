@@ -190,6 +190,7 @@ export default function CreateDecisionScreen() {
     <View style={styles.screen}>
       <ScrollView
         contentContainerStyle={[styles.content, { paddingBottom: Math.max(insets.bottom + 118, 138) }]}
+        keyboardDismissMode="on-drag"
         keyboardShouldPersistTaps="handled">
         <View style={styles.header}>
           <Text style={styles.kicker}>Neuer Vergleich</Text>
