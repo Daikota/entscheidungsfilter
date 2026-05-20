@@ -206,18 +206,17 @@ type StatPillProps = {
   label: string;
   value: string;
   icon?: IconName;
-  emphasis?: boolean;
 };
 
-export function StatPill({ label, value, icon, emphasis = false }: StatPillProps) {
+export function StatPill({ label, value, icon }: StatPillProps) {
   const theme = useAppTheme();
   const styles = createStyles(theme);
 
   return (
-    <View style={[styles.statPill, emphasis && styles.statPillEmphasis]}>
-      {icon ? <Ionicons color={emphasis ? theme.colors.textStrong : theme.colors.textSecondary} name={icon} size={15} /> : null}
-      <Text style={[styles.statLabel, emphasis && styles.statTextEmphasis]}>{label}</Text>
-      <Text style={[styles.statValue, emphasis && styles.statTextEmphasis]}>{value}</Text>
+    <View style={styles.statPill}>
+      {icon ? <Ionicons color={theme.colors.textSecondary} name={icon} size={15} /> : null}
+      <Text style={styles.statLabel}>{label}</Text>
+      <Text style={styles.statValue}>{value}</Text>
     </View>
   );
 }
@@ -391,10 +390,6 @@ const createStyles = (theme: AppThemeValues) => StyleSheet.create({
     minHeight: 34,
     paddingHorizontal: 11,
   },
-  statPillEmphasis: {
-    backgroundColor: theme.colors.surfaceRaised,
-    borderColor: theme.colors.border,
-  },
   statLabel: {
     color: theme.colors.textSecondary,
     fontSize: 12,
@@ -404,8 +399,5 @@ const createStyles = (theme: AppThemeValues) => StyleSheet.create({
     color: theme.colors.textStrong,
     fontSize: 13,
     fontWeight: '900',
-  },
-  statTextEmphasis: {
-    color: theme.colors.textStrong,
   },
 });

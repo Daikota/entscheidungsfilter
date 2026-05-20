@@ -9,7 +9,7 @@ import { AppButton, AppCard, AppLogo, SectionHeader, StatPill } from '@/componen
 import { AppThemeValues, ThemePreference, useAppTheme } from '@/constants/theme';
 import { useDecisions } from '@/contexts/decision-context';
 
-const appVersion = Constants.expoConfig?.version ?? '1.0.0';
+const appVersion = Constants.expoConfig?.version ?? '1.0.1';
 
 const themeOptions: { value: ThemePreference; label: string; icon: keyof typeof Ionicons.glyphMap }[] = [
   { value: 'system', label: 'System', icon: 'phone-portrait-outline' },
@@ -53,7 +53,7 @@ export default function SettingsScreen() {
           <Text style={styles.kicker}>App</Text>
           <Text style={styles.title}>Entscheidungsfilter</Text>
           <View style={styles.pillRow}>
-            <StatPill icon="pricetag-outline" label="Version" value={appVersion} emphasis />
+            <StatPill icon="pricetag-outline" label="Version" value={appVersion} />
             <StatPill icon="phone-portrait-outline" label="Speicher" value="Lokal" />
           </View>
         </View>

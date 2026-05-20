@@ -53,7 +53,7 @@ export default function HomeScreen() {
         </View>
 
         <View style={styles.summaryRow}>
-          <StatPill icon="layers-outline" label="Aktiv" value={`${decisions.length}`} emphasis />
+          <StatPill icon="layers-outline" label="Aktiv" value={`${decisions.length}`} />
           <StatPill
             icon="git-compare-outline"
             label="Optionen"
@@ -100,7 +100,6 @@ export default function HomeScreen() {
                       icon="time-outline"
                       label="Update"
                       value={formatDateTime(decision.updatedAt).split(',')[0]}
-                      emphasis={index === 0}
                     />
                     <StatPill icon="calendar-clear-outline" label="Erstellt" value={formatDateTime(decision.createdAt).split(',')[0]} />
                   </View>
@@ -138,13 +137,8 @@ const createStyles = (theme: AppThemeValues) => StyleSheet.create({
     paddingTop: 42,
   },
   hero: {
-    backgroundColor: theme.colors.surfaceTint,
-    borderColor: theme.colors.borderSoft,
-    borderRadius: theme.radius.xl,
-    borderWidth: 1,
     gap: 18,
-    padding: 20,
-    ...theme.shadow.elevated,
+    paddingTop: 2,
   },
   heroTopRow: {
     alignItems: 'center',

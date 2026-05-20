@@ -370,7 +370,7 @@ export default function DecisionDetailScreen() {
             </View>
           ) : null}
           <View style={styles.statsRow}>
-            <StatPill icon="list-outline" label="Optionen" value={`${decision.options.length}`} emphasis />
+            <StatPill icon="list-outline" label="Optionen" value={`${decision.options.length}`} />
             <StatPill icon="options-outline" label="Kriterien" value={`${decision.criteria.length}`} />
           </View>
         </AppCard>
