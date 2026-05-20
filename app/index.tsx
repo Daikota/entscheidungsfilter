@@ -25,6 +25,9 @@ export default function HomeScreen() {
   const { decisions, databaseError, isDatabaseReady } = useDecisions();
   const insets = useSafeAreaInsets();
   const footerBottomPadding = Math.max(insets.bottom + 14, 30);
+  const readyDecisionCount = decisions.filter(
+    (decision) => decision.options.length >= 2 && decision.criteria.length >= 1
+  ).length;
 
   return (
     <View style={styles.screen}>
@@ -54,11 +57,7 @@ export default function HomeScreen() {
 
         <View style={styles.summaryRow}>
           <StatPill icon="layers-outline" label="Aktiv" value={`${decisions.length}`} />
-          <StatPill
-            icon="git-compare-outline"
-            label="Optionen"
-            value={`${decisions.reduce((sum, decision) => sum + decision.options.length, 0)}`}
-          />
+          <StatPill icon="checkmark-circle-outline" label="Bereit" value={`${readyDecisionCount}`} />
         </View>
 
         {!isDatabaseReady ? (

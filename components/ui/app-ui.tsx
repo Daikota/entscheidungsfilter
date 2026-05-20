@@ -33,6 +33,7 @@ export function AppLogo({ size = 52, style }: AppLogoProps) {
     <Image
       accessibilityIgnoresInvertColors
       accessibilityLabel="Entscheidungsfilter Logo"
+      resizeMode="contain"
       source={theme.isDark ? logoDark : logoLight}
       style={[{ height: size, width: size }, style]}
     />
