@@ -1,6 +1,6 @@
 # Entscheidungsfilter
 
-Version: 1.0.4
+Version: 1.1.0
 
 Entscheidungsfilter ist eine mobile App zum strukturierten Vergleichen von Optionen. Du legst Entscheidungen an, ergänzt Optionen und Kriterien, bewertest jede Option nach den Kriterien und erhältst eine gewichtete Rangliste.
 

@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { AppButton, AppCard, AppInput, IconButton, SectionHeader, StatPill } from '@/components/ui/app-ui';
+import { AppButton, AppCard, AppInput, IconButton, SectionHeader } from '@/components/ui/app-ui';
 import { AppThemeValues, useAppTheme } from '@/constants/theme';
 import { useDecisions } from '@/contexts/decision-context';
 import { CriterionWeight } from '@/types/decision';
@@ -194,11 +194,8 @@ export default function CreateDecisionScreen() {
         keyboardShouldPersistTaps="handled">
         <View style={styles.header}>
           <Text style={styles.kicker}>Neuer Vergleich</Text>
-          <Text style={styles.title}>Alles Wichtige in einem Schritt.</Text>
-          <View style={styles.progressRow}>
-            <StatPill icon="git-compare-outline" label="Optionen" value={`${draftOptions.length}`} />
-            <StatPill icon="options-outline" label="Kriterien" value={`${draftCriteria.length}`} />
-          </View>
+          <Text style={styles.title}>Starte mit der Entscheidung.</Text>
+          <Text style={styles.subtitle}>Optionen und Kriterien kannst du direkt hier sammeln.</Text>
         </View>
 
         <View style={styles.section}>
@@ -413,11 +410,10 @@ const createStyles = (theme: AppThemeValues) => StyleSheet.create({
     fontWeight: '900',
     lineHeight: 36,
   },
-  progressRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    marginTop: 2,
+  subtitle: {
+    color: theme.colors.textSecondary,
+    fontSize: 15,
+    lineHeight: 21,
   },
   section: {
     gap: 12,

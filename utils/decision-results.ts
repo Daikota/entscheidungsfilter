@@ -2,7 +2,7 @@ import { Decision, DecisionResult, RatingProgress } from '@/types/decision';
 
 const getResultLabel = (rank: number): DecisionResult['label'] => {
   if (rank === 1) {
-    return 'Beste Wahl';
+    return 'Empfehlung';
   }
 
   if (rank === 2) {

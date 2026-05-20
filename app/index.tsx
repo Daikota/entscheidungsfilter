@@ -28,6 +28,10 @@ export default function HomeScreen() {
   const readyDecisionCount = decisions.filter(
     (decision) => decision.options.length >= 2 && decision.criteria.length >= 1
   ).length;
+  const sortedDecisions = [...decisions].sort(
+    (firstDecision, secondDecision) =>
+      new Date(secondDecision.updatedAt).getTime() - new Date(firstDecision.updatedAt).getTime()
+  );
 
   return (
     <View style={styles.screen}>
@@ -57,7 +61,7 @@ export default function HomeScreen() {
 
         <View style={styles.summaryRow}>
           <StatPill icon="layers-outline" label="Aktiv" value={`${decisions.length}`} />
-          <StatPill icon="checkmark-circle-outline" label="Bereit" value={`${readyDecisionCount}`} />
+          <StatPill icon="checkmark-circle-outline" label="Bewertbar" value={`${readyDecisionCount}`} />
         </View>
 
         {!isDatabaseReady ? (
@@ -72,39 +76,50 @@ export default function HomeScreen() {
           />
         ) : (
           <View style={styles.decisionList}>
-            {decisions.map((decision, index) => (
-              <Pressable
-                accessibilityLabel={`Entscheidung ${decision.title} öffnen`}
-                accessibilityRole="button"
-                key={decision.id}
-                onPress={() => router.push({ pathname: '/decision/[id]/ratings', params: { id: decision.id } })}
-                style={({ pressed }) => [
-                  styles.decisionPressable,
-                  pressed && styles.decisionPressablePressed,
-                ]}>
-                <AppCard elevated={index === 0} style={styles.decisionCard}>
-                  <View style={styles.cardTopRow}>
-                    <View style={styles.cardTitleGroup}>
-                      <Text numberOfLines={2} style={styles.decisionTitle}>
-                        {decision.title}
-                      </Text>
+            {sortedDecisions.map((decision, index) => {
+              const isDecisionRateable = decision.options.length >= 2 && decision.criteria.length >= 1;
+
+              return (
+                <Pressable
+                  accessibilityLabel={`Entscheidung ${decision.title} öffnen`}
+                  accessibilityRole="button"
+                  key={decision.id}
+                  onPress={() => router.push({ pathname: '/decision/[id]/ratings', params: { id: decision.id } })}
+                  style={({ pressed }) => [
+                    styles.decisionPressable,
+                    pressed && styles.decisionPressablePressed,
+                  ]}>
+                  <AppCard elevated={index === 0} style={[styles.decisionCard, index === 0 && styles.focusDecisionCard]}>
+                    {index === 0 ? (
+                      <View style={styles.focusBadge}>
+                        <Ionicons color={theme.colors.onPrimary} name="play-forward" size={13} />
+                        <Text style={styles.focusBadgeText}>
+                          {isDecisionRateable ? 'Weiter bewerten' : 'Weiter aufbauen'}
+                        </Text>
+                      </View>
+                    ) : null}
+                    <View style={styles.cardTopRow}>
+                      <View style={styles.cardTitleGroup}>
+                        <Text numberOfLines={2} style={styles.decisionTitle}>
+                          {decision.title}
+                        </Text>
+                      </View>
+                      <View style={styles.cardArrow}>
+                        <Ionicons color={theme.colors.textSecondary} name="chevron-forward" size={20} />
+                      </View>
                     </View>
-                    <View style={styles.cardArrow}>
-                      <Ionicons color={theme.colors.textSecondary} name="chevron-forward" size={20} />
+                    <View style={styles.cardMetaRow}>
+                      <StatPill icon="list-outline" label="Optionen" value={`${decision.options.length}`} />
+                      <StatPill
+                        icon="time-outline"
+                        label="Geändert"
+                        value={formatDateTime(decision.updatedAt).split(',')[0]}
+                      />
                     </View>
-                  </View>
-                  <View style={styles.cardMetaRow}>
-                    <StatPill icon="list-outline" label="Optionen" value={`${decision.options.length}`} />
-                    <StatPill
-                      icon="time-outline"
-                      label="Update"
-                      value={formatDateTime(decision.updatedAt).split(',')[0]}
-                    />
-                    <StatPill icon="calendar-clear-outline" label="Erstellt" value={formatDateTime(decision.createdAt).split(',')[0]} />
-                  </View>
-                </AppCard>
-              </Pressable>
-            ))}
+                  </AppCard>
+                </Pressable>
+              );
+            })}
           </View>
         )}
       </ScrollView>
@@ -189,6 +204,24 @@ const createStyles = (theme: AppThemeValues) => StyleSheet.create({
   },
   decisionCard: {
     gap: 14,
+  },
+  focusDecisionCard: {
+    borderColor: theme.colors.primaryBorder,
+  },
+  focusBadge: {
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    backgroundColor: theme.colors.primary,
+    borderRadius: theme.radius.pill,
+    flexDirection: 'row',
+    gap: 6,
+    minHeight: 30,
+    paddingHorizontal: 11,
+  },
+  focusBadgeText: {
+    color: theme.colors.onPrimary,
+    fontSize: 12,
+    fontWeight: '900',
   },
   cardTopRow: {
     alignItems: 'center',

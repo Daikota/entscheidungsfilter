@@ -9,7 +9,7 @@ import { AppButton, AppCard, AppLogo, SectionHeader, StatPill } from '@/componen
 import { AppThemeValues, ThemePreference, useAppTheme } from '@/constants/theme';
 import { useDecisions } from '@/contexts/decision-context';
 
-const appVersion = Constants.expoConfig?.version ?? '1.0.4';
+const appVersion = Constants.expoConfig?.version ?? '1.1.0';
 
 const themeOptions: { value: ThemePreference; label: string; icon: keyof typeof Ionicons.glyphMap }[] = [
   { value: 'system', label: 'System', icon: 'phone-portrait-outline' },

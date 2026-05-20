@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { AppButton, AppCard, EmptyState, IconButton, SectionHeader, StatPill } from '@/components/ui/app-ui';
+import { AppButton, AppCard, EmptyState, IconButton, SectionHeader } from '@/components/ui/app-ui';
 import { AppThemeValues, useAppTheme } from '@/constants/theme';
 import { useDecisions } from '@/contexts/decision-context';
 import { RatingScore } from '@/types/decision';
@@ -16,6 +16,13 @@ import {
 import { canStartRating } from '@/utils/decision-validation';
 
 const ratingScores: RatingScore[] = [1, 2, 3, 4, 5];
+
+type NextRatingTarget = {
+  optionId: string;
+  optionName: string;
+  criterionId: string;
+  criterionName: string;
+};
 
 export default function DecisionRatingsScreen() {
   const theme = useAppTheme();
@@ -69,6 +76,45 @@ export default function DecisionRatingsScreen() {
   const maxScore = results.length > 0 ? results[0].totalScore : 0;
   const ratingProgress = getDecisionRatingProgress(decision);
   const progressWidth = hasMissingSetup ? 0 : Math.max(ratingProgress.percentage, 4);
+  const nextRatingTarget = hasMissingSetup
+    ? null
+    : decision.options.reduce<NextRatingTarget | null>((target, option) => {
+        if (target !== null) {
+          return target;
+        }
+
+        const criterion = decision.criteria.find(
+          (currentCriterion) =>
+            !decision.ratings.some(
+              (rating) =>
+                rating.optionId === option.id && rating.criterionId === currentCriterion.id
+            )
+        );
+
+        if (criterion === undefined) {
+          return null;
+        }
+
+        return {
+          optionId: option.id,
+          optionName: option.name,
+          criterionId: criterion.id,
+          criterionName: criterion.name,
+        };
+      }, null);
+  const ratingOptions = nextRatingTarget
+    ? [...decision.options].sort((firstOption, secondOption) => {
+        if (firstOption.id === nextRatingTarget.optionId) {
+          return -1;
+        }
+
+        if (secondOption.id === nextRatingTarget.optionId) {
+          return 1;
+        }
+
+        return 0;
+      })
+    : decision.options;
 
   return (
     <ScrollView
@@ -89,12 +135,6 @@ export default function DecisionRatingsScreen() {
         <Text numberOfLines={2} style={styles.subtitle}>
           {decision.title}
         </Text>
-        <View style={styles.statsRow}>
-          <StatPill icon="list-outline" label="Optionen" value={`${decision.options.length}`} />
-          <StatPill icon="options-outline" label="Kriterien" value={`${decision.criteria.length}`} />
-          <StatPill icon="trending-up-outline" label="Skala" value="1-5" />
-          <StatPill icon="checkmark-circle-outline" label="Erledigt" value={`${ratingProgress.completed}/${ratingProgress.total}`} />
-        </View>
         {!hasMissingSetup ? (
           <View style={styles.progressBox}>
             <View style={styles.progressTextRow}>
@@ -106,6 +146,19 @@ export default function DecisionRatingsScreen() {
             <View style={styles.progressTrack}>
               <View style={[styles.progressFill, { width: `${progressWidth}%` }]} />
             </View>
+            {nextRatingTarget ? (
+              <View style={styles.nextStepBox}>
+                <Ionicons color={theme.colors.primary} name="arrow-forward-circle-outline" size={18} />
+                <Text style={styles.nextStepText}>
+                  Als Nächstes: {nextRatingTarget.optionName} nach {nextRatingTarget.criterionName}
+                </Text>
+              </View>
+            ) : (
+              <View style={styles.nextStepBox}>
+                <Ionicons color={theme.colors.primary} name="checkmark-circle-outline" size={18} />
+                <Text style={styles.nextStepText}>Alle Bewertungen sind vollständig.</Text>
+              </View>
+            )}
           </View>
         ) : null}
       </AppCard>
@@ -136,8 +189,22 @@ export default function DecisionRatingsScreen() {
               <View style={styles.scaleHintLine} />
               <Text style={styles.scaleHintText}>5 hoch</Text>
             </AppCard>
-            {decision.options.map((option) => {
+            {ratingOptions.map((option) => {
               const optionProgress = getOptionRatingProgress(decision, option.id);
+              const ratingCriteria =
+                nextRatingTarget?.optionId === option.id
+                  ? [...decision.criteria].sort((firstCriterion, secondCriterion) => {
+                      if (firstCriterion.id === nextRatingTarget.criterionId) {
+                        return -1;
+                      }
+
+                      if (secondCriterion.id === nextRatingTarget.criterionId) {
+                        return 1;
+                      }
+
+                      return 0;
+                    })
+                  : decision.criteria;
 
               return (
                 <AppCard key={option.id} style={styles.optionCard}>
@@ -168,23 +235,34 @@ export default function DecisionRatingsScreen() {
                   </View>
 
                   <View style={styles.criteriaList}>
-                    {decision.criteria.map((criterion) => {
+                    {ratingCriteria.map((criterion) => {
                       const selectedRating = decision.ratings.find(
                         (rating) =>
                           rating.optionId === option.id && rating.criterionId === criterion.id
                       );
                       const isMissing = selectedRating === undefined;
+                      const isNextTarget =
+                        nextRatingTarget?.optionId === option.id &&
+                        nextRatingTarget.criterionId === criterion.id;
 
                       return (
                         <View
                           key={criterion.id}
-                          style={[styles.ratingBlock, isMissing && styles.ratingBlockMissing]}>
+                          style={[
+                            styles.ratingBlock,
+                            isMissing && styles.ratingBlockMissing,
+                            isNextTarget && styles.ratingBlockFocused,
+                          ]}>
                           <View style={styles.ratingHeader}>
                             <View style={styles.criterionTextGroup}>
                               <Text numberOfLines={2} style={styles.criterionName}>{criterion.name}</Text>
                               <Text style={styles.weightText}>Gewicht {criterion.weight}</Text>
                             </View>
-                            {selectedRating ? (
+                            {isNextTarget ? (
+                              <View style={styles.nextBadge}>
+                                <Text style={styles.nextBadgeText}>Jetzt</Text>
+                              </View>
+                            ) : selectedRating ? (
                               <View style={styles.selectedBadge}>
                                 <Text style={styles.selectedBadgeText}>{selectedRating.score}</Text>
                               </View>
@@ -267,21 +345,29 @@ export default function DecisionRatingsScreen() {
                     elevated={result.rank === 1}
                     key={result.optionId}
                     style={[styles.resultCard, result.rank === 1 && styles.bestResultCard]}>
+                    {result.rank === 1 ? (
+                      <View style={styles.recommendationBanner}>
+                        <Ionicons color={theme.colors.onPrimary} name="trophy-outline" size={15} />
+                        <Text style={styles.recommendationText}>
+                          Wahrscheinlich deine beste Wahl
+                        </Text>
+                      </View>
+                    ) : null}
                     <View style={styles.resultTopRow}>
                       <View style={[styles.resultRank, result.rank === 1 && styles.bestResultRank]}>
                         <Text style={[styles.resultRankText, result.rank === 1 && styles.bestResultRankText]}>
-                          {result.rank}
+                          {result.rank === 1 ? 'Top' : `#${result.rank}`}
                         </Text>
                       </View>
                       <View style={styles.resultContent}>
                         <Text numberOfLines={2} style={styles.resultTitle}>{result.optionName}</Text>
-                        <Text style={styles.resultLabel}>
+                        <Text style={[styles.resultLabel, result.rank === 1 && styles.bestResultLabel]}>
                           {result.isComplete ? result.label : `${result.label} · ${result.missingRatings} offen`}
                         </Text>
                       </View>
                       <View style={styles.scoreBadge}>
                         <Text style={styles.resultScore}>{result.totalScore}</Text>
-                        <Text style={styles.scoreCaption}>Pkt.</Text>
+                        <Text style={styles.scoreCaption}>Punkte</Text>
                       </View>
                     </View>
                     <View style={styles.scoreTrack}>
@@ -338,14 +424,8 @@ const createStyles = (theme: AppThemeValues) => StyleSheet.create({
     fontSize: 16,
     lineHeight: 22,
   },
-  statsRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    paddingTop: 2,
-  },
   progressBox: {
-    gap: 8,
+    gap: 10,
   },
   progressTextRow: {
     alignItems: 'center',
@@ -374,6 +454,23 @@ const createStyles = (theme: AppThemeValues) => StyleSheet.create({
     backgroundColor: theme.colors.primary,
     borderRadius: theme.radius.pill,
     height: '100%',
+  },
+  nextStepBox: {
+    alignItems: 'center',
+    backgroundColor: theme.colors.surfaceTint,
+    borderColor: theme.colors.borderSoft,
+    borderRadius: theme.radius.lg,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: 8,
+    padding: 11,
+  },
+  nextStepText: {
+    color: theme.colors.textStrong,
+    flex: 1,
+    fontSize: 13,
+    fontWeight: '900',
+    lineHeight: 18,
   },
   section: {
     gap: 12,
@@ -462,6 +559,10 @@ const createStyles = (theme: AppThemeValues) => StyleSheet.create({
   ratingBlockMissing: {
     borderColor: theme.colors.primaryBorder,
   },
+  ratingBlockFocused: {
+    backgroundColor: theme.colors.primarySoft,
+    borderColor: theme.colors.primaryBorder,
+  },
   ratingHeader: {
     alignItems: 'center',
     flexDirection: 'row',
@@ -492,6 +593,19 @@ const createStyles = (theme: AppThemeValues) => StyleSheet.create({
   selectedBadgeText: {
     color: theme.colors.onPrimary,
     fontSize: 13,
+    fontWeight: '900',
+  },
+  nextBadge: {
+    alignItems: 'center',
+    backgroundColor: theme.colors.primary,
+    borderRadius: theme.radius.pill,
+    minHeight: 30,
+    justifyContent: 'center',
+    paddingHorizontal: 10,
+  },
+  nextBadgeText: {
+    color: theme.colors.onPrimary,
+    fontSize: 12,
     fontWeight: '900',
   },
   missingBadge: {
@@ -580,8 +694,24 @@ const createStyles = (theme: AppThemeValues) => StyleSheet.create({
     gap: 12,
   },
   bestResultCard: {
+    backgroundColor: theme.colors.primarySoft,
     borderColor: theme.colors.primary,
     borderWidth: 2,
+  },
+  recommendationBanner: {
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    backgroundColor: theme.colors.primary,
+    borderRadius: theme.radius.pill,
+    flexDirection: 'row',
+    gap: 6,
+    minHeight: 32,
+    paddingHorizontal: 12,
+  },
+  recommendationText: {
+    color: theme.colors.onPrimary,
+    fontSize: 12,
+    fontWeight: '900',
   },
   resultTopRow: {
     alignItems: 'center',
@@ -594,14 +724,15 @@ const createStyles = (theme: AppThemeValues) => StyleSheet.create({
     borderRadius: theme.radius.pill,
     height: 42,
     justifyContent: 'center',
-    width: 42,
+    minWidth: 42,
+    paddingHorizontal: 9,
   },
   bestResultRank: {
     backgroundColor: theme.colors.primary,
   },
   resultRankText: {
     color: theme.colors.textStrong,
-    fontSize: 18,
+    fontSize: 15,
     fontWeight: '900',
   },
   bestResultRankText: {
@@ -620,6 +751,10 @@ const createStyles = (theme: AppThemeValues) => StyleSheet.create({
     color: theme.colors.textSecondary,
     fontSize: 13,
     fontWeight: '700',
+  },
+  bestResultLabel: {
+    color: theme.colors.textStrong,
+    fontWeight: '900',
   },
   scoreBadge: {
     alignItems: 'flex-end',

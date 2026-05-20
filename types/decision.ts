@@ -31,7 +31,7 @@ export type DecisionResult = {
   optionName: string;
   totalScore: number;
   rank: number;
-  label: 'Beste Wahl' | 'Alternative' | 'Niedriger bewertet';
+  label: 'Empfehlung' | 'Alternative' | 'Niedriger bewertet';
   completedRatings: number;
   missingRatings: number;
   isComplete: boolean;
