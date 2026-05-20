@@ -267,7 +267,7 @@ const createStyles = (theme: AppThemeValues) => StyleSheet.create({
     backgroundColor: theme.colors.dangerSoftPressed,
   },
   disabledButton: {
-    backgroundColor: theme.colors.primaryDisabled,
+    opacity: 0.62,
   },
   buttonText: {
     color: theme.colors.textStrong,
