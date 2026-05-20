@@ -1,50 +1,82 @@
-# Welcome to your Expo app 👋
+# Entscheidungsfilter
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Version: 1.0.4
 
-## Get started
+Entscheidungsfilter ist eine mobile App zum strukturierten Vergleichen von Optionen. Du legst Entscheidungen an, ergänzt Optionen und Kriterien, bewertest jede Option nach den Kriterien und erhältst eine gewichtete Rangliste.
 
-1. Install dependencies
+## Tech Stack
 
-   ```bash
-   npm install
-   ```
+- Expo SDK 54
+- React Native
+- Expo Router
+- TypeScript
+- expo-sqlite
+- React Context für App-State
+- lokales Theme-System mit Light/Dark/System-Modus
 
-2. Start the app
+## Hauptfunktionen
 
-   ```bash
-   npx expo start
-   ```
+- Entscheidungen erstellen, bearbeiten und löschen
+- Optionen und Kriterien hinzufügen, bearbeiten und löschen
+- Gewichtung für Kriterien von 1 bis 3
+- Bewertungsskala von 1 bis 5
+- Ergebnisberechnung nach `Bewertung * Gewichtung`
+- Rangliste mit Gewinner, Alternativen und Punktwerten
+- Fortschritt für offene Bewertungen
+- Einstellungen mit Theme-Auswahl und lokaler Datenverwaltung
 
-In the output, you'll find options to open the app in a
+## Lokale Speicherung
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+Alle App-Daten werden lokal auf dem Gerät mit SQLite gespeichert:
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+- Entscheidungen
+- Optionen
+- Kriterien
+- Bewertungen
+- Theme-Einstellung
 
-## Get a fresh project
+Die App verwendet keine Accounts, keine externe API, keine Werbung und kein Cloud-Backend.
 
-When you're ready, run:
+## Entwicklung starten
+
+Abhängigkeiten installieren:
 
 ```bash
-npm run reset-project
+npm install
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+Expo starten:
 
-## Learn more
+```bash
+npx expo start
+```
 
-To learn more about developing your project with Expo, look at the following resources:
+Expo mit geleertem Metro-Cache starten:
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+```bash
+npx expo start -c
+```
 
-## Join the community
+Die App kann in Expo Go auf Android getestet werden.
 
-Join our community of developers creating universal apps.
+## Projektstruktur
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+```text
+app/                  Expo-Router-Screens
+app/decision/          Detail-, Bewertungs- und Ergebnisfluss
+components/ui/         wiederverwendbare UI-Komponenten
+constants/             Theme- und Farbwerte
+contexts/              App-State und Datenaktionen
+database/              SQLite-Initialisierung, Schema und Repository
+types/                 zentrale TypeScript-Typen
+utils/                 Validierung und Ergebnisberechnung
+assets/images/         App-Logo, Icon- und Splash-Assets
+```
+
+## Wichtige Befehle
+
+```bash
+npm install
+npx expo start
+npx expo start -c
+```
