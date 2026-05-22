@@ -248,3 +248,76 @@ Avoid these directions unless the user explicitly requests them:
 - Large empty spaces without purpose.
 - Inconsistent components.
 - Default React Native look.
+
+## Studio Brand and App Ecosystem Rules
+
+These rules are mandatory for future apps that should belong to the same studio ecosystem. They extend the app-specific rules above into a reusable studio design system.
+
+### 1. Shared Studio Identity
+
+- All apps must feel like products from the same modern software studio.
+- Apps must be calm, high-quality, modern, and mobile-first.
+- No app may feel like a generic prototype, starter project, or standard template.
+- Recognition across apps must come from consistent colors, typography, layout logic, and component behavior.
+
+### 2. Unified Design System
+
+- All apps must use the same core logic for layouts, cards, buttons, inputs, chips, empty states, and bottom actions.
+- Reusable UI components must be preferred for repeated interface patterns.
+- New apps must inherit the existing design rules instead of inventing a new visual system from scratch.
+- Shared component patterns should be extended deliberately rather than duplicated with small visual differences.
+
+### 3. Shared Color Logic
+
+- The studio accent color is `#EE8434` by default.
+- Dark Mode must use this studio base unless an app-specific reason justifies a controlled variation:
+  - Background: `#2C2B3C`
+  - Surface/Card: `#403F4C`
+  - Accent: `#EE8434`
+- Light Mode must use this studio base unless an app-specific reason justifies a controlled variation:
+  - Background: `#FEFDFF`
+  - Surface/Card: `#8EB1C7`
+  - Accent: `#EE8434`
+- The accent color may only be used for true primary actions, active selections, focus states, winners, or important interactions.
+- Neutral information must never look like an active selection, active filter, or primary interaction.
+
+### 4. App-Specific Adaptation
+
+- Each app may have its own icons, logos, content model, and specialized components.
+- The shared studio visual language must remain recognizable across app-specific adaptations.
+- App-specific deviations must have a clear product or usability reason.
+- Do not introduce random new colors, surfaces, typography styles, or interaction patterns without a clear benefit.
+
+### 5. Cross-App UX Philosophy
+
+- Keep user flows short and direct.
+- Avoid repeated unnecessary steps.
+- Prefer less text and clearer visual communication.
+- Prioritize mobile use, thumb reachability, and small-screen clarity.
+- Keep important actions easy to reach.
+- Use progressive disclosure for optional, advanced, or rarely used content.
+
+### 6. Component Quality
+
+- New components must match the existing premium look before they are considered complete.
+- Do not use default React Native styling as a finished UI.
+- Do not create generic dashboard layouts.
+- Do not create overloaded form pages.
+- Cards must stay compact, polished, and visually consistent.
+- Buttons must clearly distinguish primary, secondary, ghost, and danger actions.
+
+### 7. Long-Term Goal
+
+- This project must serve as a foundation for a small app ecosystem.
+- Each new app should be faster to build because design and UX rules are reusable.
+- Codex must apply the studio rules first, then adapt them to the specific app idea.
+- Shared decisions should reduce future design drift without blocking app-specific product needs.
+
+### 8. Codex Rule for New Apps
+
+When developing a new app, Codex must first check:
+
+- Which existing studio rules can be reused.
+- Which app-specific rules need to be added.
+- Whether the new app visually belongs to the studio ecosystem.
+- Whether the UI remains high-quality, modern, mobile-first, and consistent.
